@@ -1,0 +1,119 @@
+services:
+  # ============================================================
+  # DEV — single instance, no HA
+  # ============================================================
+  sql-dev:
+    image: mcr.microsoft.com/mssql/server:2019-latest
+    container_name: sql-dev
+    hostname: sql-dev
+    environment:
+      ACCEPT_EULA: "Y"
+      SA_PASSWORD: "${SA_PASSWORD}"
+      MSSQL_PID: "Developer"
+    ports:
+      - "1401:1433"
+    networks:
+      - dba-lab
+    volumes:
+      - sql-dev-data:/var/opt/mssql
+      - ./scripts:/scripts
+      - ./db:/db
+    healthcheck:
+      test: /opt/mssql-tools18/bin/sqlcmd -S localhost -U sa -P "$${SA_PASSWORD}" -No -Q "SELECT 1" -b
+      interval: 10s
+      timeout: 5s
+      retries: 10
+      start_period: 30s
+
+  # ============================================================
+  # STAGING — single instance, no HA
+  # ============================================================
+  sql-staging:
+    image: mcr.microsoft.com/mssql/server:2019-latest
+    container_name: sql-staging
+    hostname: sql-staging
+    environment:
+      ACCEPT_EULA: "Y"
+      SA_PASSWORD: "${SA_PASSWORD}"
+      MSSQL_PID: "Developer"
+    ports:
+      - "1402:1433"
+    networks:
+      - dba-lab
+    volumes:
+      - sql-staging-data:/var/opt/mssql
+      - ./scripts:/scripts
+      - ./db:/db
+    healthcheck:
+      test: /opt/mssql-tools18/bin/sqlcmd -S localhost -U sa -P "$${SA_PASSWORD}" -No -Q "SELECT 1" -b
+      interval: 10s
+      timeout: 5s
+      retries: 10
+      start_period: 30s
+
+  # ============================================================
+  # PROD PRIMARY — AG enabled, synchronous commit
+  # ============================================================
+  sql-prod-1:
+    image: mcr.microsoft.com/mssql/server:2019-latest
+    container_name: sql-prod-1
+    hostname: sql-prod-1
+    environment:
+      ACCEPT_EULA: "Y"
+      SA_PASSWORD: "${SA_PASSWORD}"
+      MSSQL_PID: "Developer"
+      MSSQL_ENABLE_HADR: 1
+    ports:
+      - "1403:1433"
+    networks:
+      - dba-lab
+    volumes:
+      - sql-prod-1-data:/var/opt/mssql
+      - ag-shared:/var/opt/mssql/shared
+      - ./scripts:/scripts
+      - ./db:/db
+    healthcheck:
+      test: /opt/mssql-tools18/bin/sqlcmd -S localhost -U sa -P "$${SA_PASSWORD}" -No -Q "SELECT 1" -b
+      interval: 10s
+      timeout: 5s
+      retries: 10
+      start_period: 30s
+
+  # ============================================================
+  # PROD SECONDARY — AG enabled, automatic failover target
+  # ============================================================
+  sql-prod-2:
+    image: mcr.microsoft.com/mssql/server:2019-latest
+    container_name: sql-prod-2
+    hostname: sql-prod-2
+    environment:
+      ACCEPT_EULA: "Y"
+      SA_PASSWORD: "${SA_PASSWORD}"
+      MSSQL_PID: "Developer"
+      MSSQL_ENABLE_HADR: 1
+    ports:
+      - "1404:1433"
+    networks:
+      - dba-lab
+    volumes:
+      - sql-prod-2-data:/var/opt/mssql
+      - ag-shared:/var/opt/mssql/shared
+      - ./scripts:/scripts
+      - ./db:/db
+    healthcheck:
+      test: /opt/mssql-tools18/bin/sqlcmd -S localhost -U sa -P "$${SA_PASSWORD}" -No -Q "SELECT 1" -b
+      interval: 10s
+      timeout: 5s
+      retries: 10
+      start_period: 30s
+
+networks:
+  dba-lab:
+    driver: bridge
+
+volumes:
+  sql-dev-data:
+  sql-staging-data:
+  sql-prod-1-data:
+  sql-prod-2-data:
+  ag-shared:

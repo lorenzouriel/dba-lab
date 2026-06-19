@@ -1,0 +1,991 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>DBA Lab — Setup Guide</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Fira+Code:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --font-body: 'DM Sans', system-ui, sans-serif;
+    --font-mono: 'Fira Code', 'SF Mono', Consolas, monospace;
+    --bg: #f7f5f2;
+    --surface: #ffffff;
+    --surface2: #f0ece7;
+    --surface-elevated: #fffcf8;
+    --border: rgba(0,0,0,0.07);
+    --border-bright: rgba(0,0,0,0.14);
+    --text: #1e1a15;
+    --text-dim: #7a7167;
+    --accent: #0369a1;
+    --accent-dim: rgba(3,105,161,0.07);
+    --green: #166534;
+    --green-dim: rgba(22,101,52,0.08);
+    --amber: #b45309;
+    --amber-dim: rgba(180,83,9,0.07);
+    --red: #991b1b;
+    --red-dim: rgba(153,27,27,0.06);
+    --teal: #0f766e;
+    --teal-dim: rgba(15,118,110,0.07);
+    --slate: #475569;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root {
+      --bg: #12110f;
+      --surface: #1c1a17;
+      --surface2: #252220;
+      --surface-elevated: #2a2724;
+      --border: rgba(255,255,255,0.06);
+      --border-bright: rgba(255,255,255,0.12);
+      --text: #e8e2da;
+      --text-dim: #9a9084;
+      --accent: #38bdf8;
+      --accent-dim: rgba(56,189,248,0.1);
+      --green: #4ade80;
+      --green-dim: rgba(74,222,128,0.1);
+      --amber: #fbbf24;
+      --amber-dim: rgba(251,191,36,0.1);
+      --red: #f87171;
+      --red-dim: rgba(248,113,113,0.08);
+      --teal: #5eead4;
+      --teal-dim: rgba(94,234,212,0.08);
+      --slate: #94a3b8;
+    }
+  }
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    font-family: var(--font-body);
+    background: var(--bg);
+    background-image: radial-gradient(circle, var(--border) 1px, transparent 1px);
+    background-size: 28px 28px;
+    color: var(--text);
+    line-height: 1.6;
+    -webkit-font-smoothing: antialiased;
+  }
+  .wrap {
+    max-width: 1360px;
+    margin: 0 auto;
+    display: grid;
+    grid-template-columns: 180px 1fr;
+    gap: 0 40px;
+    padding: 32px 24px 80px;
+  }
+  .main { min-width: 0; }
+
+  /* TOC */
+  .toc {
+    position: sticky;
+    top: 24px;
+    align-self: start;
+    padding: 14px 0;
+    grid-row: 1 / -1;
+    max-height: calc(100dvh - 48px);
+    overflow-y: auto;
+  }
+  .toc::-webkit-scrollbar { width: 3px; }
+  .toc::-webkit-scrollbar-thumb { background: var(--surface-elevated); border-radius: 2px; }
+  .toc-title {
+    font-family: var(--font-mono);
+    font-size: 9px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 2px;
+    color: var(--text-dim);
+    padding: 0 0 10px;
+    margin-bottom: 8px;
+    border-bottom: 1px solid var(--border);
+  }
+  .toc a {
+    display: block;
+    font-size: 11px;
+    color: var(--text-dim);
+    text-decoration: none;
+    padding: 5px 8px;
+    border-radius: 5px;
+    border-left: 2px solid transparent;
+    transition: all .15s;
+    line-height: 1.4;
+    margin-bottom: 1px;
+  }
+  .toc a:hover { color: var(--text); background: var(--surface2); }
+  .toc a.active { color: var(--text); border-left-color: var(--accent); }
+
+  /* Hero */
+  .hero {
+    background: color-mix(in srgb, var(--surface) 92%, var(--accent) 8%);
+    border: 1px solid color-mix(in srgb, var(--border) 50%, var(--accent) 50%);
+    border-radius: 14px;
+    padding: 48px 40px;
+    margin-bottom: 40px;
+    position: relative;
+    overflow: hidden;
+  }
+  .hero::before {
+    content: '';
+    position: absolute;
+    top: -40%;
+    right: -10%;
+    width: 60%;
+    height: 180%;
+    background: radial-gradient(ellipse, var(--accent-dim) 0%, transparent 70%);
+    pointer-events: none;
+  }
+  .hero h1 {
+    font-size: 36px;
+    font-weight: 700;
+    line-height: 1.15;
+    margin-bottom: 10px;
+    position: relative;
+  }
+  .hero p { font-size: 16px; color: var(--text-dim); max-width: 640px; position: relative; }
+  .hero-badges { display: flex; gap: 8px; margin-top: 18px; flex-wrap: wrap; position: relative; }
+  .badge {
+    font-family: var(--font-mono);
+    font-size: 11px;
+    font-weight: 500;
+    padding: 4px 10px;
+    border-radius: 6px;
+    border: 1px solid var(--border);
+    background: var(--surface);
+  }
+  .badge--accent { border-color: var(--accent); color: var(--accent); background: var(--accent-dim); }
+  .badge--green { border-color: var(--green); color: var(--green); background: var(--green-dim); }
+  .badge--amber { border-color: var(--amber); color: var(--amber); background: var(--amber-dim); }
+
+  /* Section heading */
+  .sec-head {
+    font-family: var(--font-mono);
+    font-size: 11px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 1.5px;
+    padding: 10px 0;
+    margin: 48px 0 20px;
+    border-bottom: 1px solid var(--border);
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    scroll-margin-top: 20px;
+  }
+  .sec-head .dot {
+    width: 8px; height: 8px; border-radius: 50%;
+    flex-shrink: 0;
+  }
+  .dot--accent { background: var(--accent); }
+  .dot--green { background: var(--green); }
+  .dot--amber { background: var(--amber); }
+  .dot--teal { background: var(--teal); }
+  .dot--red { background: var(--red); }
+
+  /* Step card */
+  .step {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 24px 28px;
+    margin-bottom: 16px;
+    position: relative;
+    animation: fadeUp .4s ease both;
+    animation-delay: calc(var(--i, 0) * 60ms);
+  }
+  .step--elevated {
+    background: var(--surface-elevated);
+    box-shadow: 0 2px 8px rgba(0,0,0,0.06);
+  }
+  .step-num {
+    position: absolute;
+    top: -10px;
+    left: 20px;
+    font-family: var(--font-mono);
+    font-size: 11px;
+    font-weight: 600;
+    background: var(--accent);
+    color: #fff;
+    width: 24px;
+    height: 24px;
+    border-radius: 6px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+  .step-num--green { background: var(--green); }
+  .step-num--amber { background: var(--amber); }
+  .step-num--teal { background: var(--teal); }
+  .step-num--red { background: var(--red); }
+  .step h3 {
+    font-size: 17px;
+    font-weight: 600;
+    margin-bottom: 8px;
+  }
+  .step p, .step li {
+    font-size: 14px;
+    color: var(--text-dim);
+    line-height: 1.65;
+  }
+  .step ul { padding-left: 18px; margin-top: 6px; }
+  .step li { margin-bottom: 4px; }
+
+  /* Code blocks */
+  pre {
+    font-family: var(--font-mono);
+    font-size: 13px;
+    line-height: 1.6;
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 16px 20px;
+    overflow-x: auto;
+    white-space: pre-wrap;
+    word-wrap: break-word;
+    margin: 12px 0;
+  }
+  code {
+    font-family: var(--font-mono);
+    font-size: 12px;
+    background: var(--surface2);
+    padding: 2px 6px;
+    border-radius: 4px;
+  }
+  pre code { background: none; padding: 0; font-size: 13px; }
+  .cmd-label {
+    font-family: var(--font-mono);
+    font-size: 9px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 1.5px;
+    color: var(--text-dim);
+    margin-bottom: 6px;
+    display: block;
+  }
+
+  /* Architecture diagram */
+  .arch {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 32px;
+    margin: 20px 0 16px;
+  }
+  .arch-grid {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 12px;
+    margin-bottom: 20px;
+  }
+  .arch-node {
+    border: 2px solid var(--border-bright);
+    border-radius: 10px;
+    padding: 18px 14px;
+    text-align: center;
+    position: relative;
+    transition: border-color .2s, box-shadow .2s;
+  }
+  .arch-node:hover { border-color: var(--accent); box-shadow: 0 2px 12px var(--accent-dim); }
+  .arch-node.ha {
+    border-color: var(--green);
+    background: var(--green-dim);
+  }
+  .arch-node__name {
+    font-family: var(--font-mono);
+    font-size: 14px;
+    font-weight: 600;
+    display: block;
+  }
+  .arch-node__port {
+    font-family: var(--font-mono);
+    font-size: 11px;
+    color: var(--text-dim);
+    margin-top: 2px;
+    display: block;
+  }
+  .arch-node__label {
+    font-size: 10px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    margin-top: 6px;
+    display: inline-block;
+    padding: 2px 8px;
+    border-radius: 4px;
+  }
+  .label--dev { background: var(--accent-dim); color: var(--accent); }
+  .label--stg { background: var(--amber-dim); color: var(--amber); }
+  .label--pri { background: var(--green-dim); color: var(--green); }
+  .label--sec { background: var(--teal-dim); color: var(--teal); }
+  .ag-link {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    padding: 10px;
+    margin: -4px 0 12px;
+    font-family: var(--font-mono);
+    font-size: 11px;
+    color: var(--green);
+  }
+  .ag-link svg { flex-shrink: 0; }
+
+  /* Pipeline flow */
+  .pipeline {
+    display: flex;
+    align-items: center;
+    gap: 0;
+    margin: 16px 0;
+    flex-wrap: wrap;
+  }
+  .pipe-step {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 10px 18px;
+    font-family: var(--font-mono);
+    font-size: 12px;
+    font-weight: 500;
+    text-align: center;
+    flex-shrink: 0;
+  }
+  .pipe-arrow {
+    color: var(--text-dim);
+    font-size: 16px;
+    padding: 0 6px;
+    flex-shrink: 0;
+  }
+
+  /* Table */
+  .tbl-wrap { overflow-x: auto; margin: 12px 0; border-radius: 10px; border: 1px solid var(--border); }
+  table { width: 100%; border-collapse: collapse; font-size: 13px; }
+  th {
+    font-family: var(--font-mono);
+    font-size: 10px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    color: var(--text-dim);
+    background: var(--surface2);
+    padding: 10px 16px;
+    text-align: left;
+    border-bottom: 1px solid var(--border);
+    position: sticky;
+    top: 0;
+  }
+  td {
+    padding: 10px 16px;
+    border-bottom: 1px solid var(--border);
+    vertical-align: top;
+  }
+  tr:last-child td { border-bottom: none; }
+  tr:nth-child(even) td { background: color-mix(in srgb, var(--surface2) 40%, var(--surface) 60%); }
+
+  /* Callout */
+  .callout {
+    border-left: 3px solid var(--amber);
+    background: var(--amber-dim);
+    padding: 14px 18px;
+    border-radius: 0 8px 8px 0;
+    margin: 14px 0;
+    font-size: 13px;
+    color: var(--text);
+  }
+  .callout--info { border-left-color: var(--accent); background: var(--accent-dim); }
+  .callout--success { border-left-color: var(--green); background: var(--green-dim); }
+  .callout strong { font-weight: 600; }
+
+  /* File tree */
+  .file-tree {
+    font-family: var(--font-mono);
+    font-size: 12px;
+    line-height: 1.9;
+    padding: 20px 24px;
+    background: var(--surface2);
+    border-radius: 8px;
+    border: 1px solid var(--border);
+    margin: 12px 0;
+  }
+  .file-tree .dim { color: var(--text-dim); }
+  .file-tree .hl { color: var(--accent); font-weight: 500; }
+
+  /* Flow arrow between sections */
+  .flow-arrow {
+    display: flex;
+    justify-content: center;
+    padding: 6px 0;
+    color: var(--text-dim);
+    opacity: 0.5;
+  }
+
+  /* Animations */
+  @keyframes fadeUp {
+    from { opacity: 0; transform: translateY(12px); }
+    to   { opacity: 1; transform: translateY(0); }
+  }
+  @keyframes fadeScale {
+    from { opacity: 0; transform: scale(0.95); }
+    to   { opacity: 1; transform: scale(1); }
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .step, .hero { animation: none !important; }
+  }
+
+  /* Responsive */
+  @media (max-width: 860px) {
+    .wrap { grid-template-columns: 1fr; padding: 16px; }
+    .toc {
+      position: sticky;
+      top: 0;
+      z-index: 10;
+      background: var(--bg);
+      display: flex;
+      gap: 4px;
+      overflow-x: auto;
+      padding: 10px 0;
+      border-bottom: 1px solid var(--border);
+      margin-bottom: 20px;
+      -webkit-overflow-scrolling: touch;
+    }
+    .toc-title { display: none; }
+    .toc a {
+      flex-shrink: 0;
+      white-space: nowrap;
+      padding: 6px 12px;
+      border-left: none;
+      border-bottom: 2px solid transparent;
+    }
+    .toc a.active { border-bottom-color: var(--accent); border-left-color: transparent; }
+    .hero { padding: 28px 20px; }
+    .hero h1 { font-size: 26px; }
+    .arch-grid { grid-template-columns: repeat(2, 1fr); }
+    .pipeline { flex-direction: column; align-items: stretch; }
+    .pipe-arrow { transform: rotate(90deg); text-align: center; }
+  }
+</style>
+</head>
+<body>
+<div class="wrap">
+
+<nav class="toc" id="toc">
+  <div class="toc-title">Setup Guide</div>
+  <a href="#s0">0. Prerequisites</a>
+  <a href="#s1">1. Configure</a>
+  <a href="#s2">2. Start Infra</a>
+  <a href="#s3">3. Init Databases</a>
+  <a href="#s4">4. Setup AG</a>
+  <a href="#s5">5. Deploy Pipeline</a>
+  <a href="#s6">6. Test Failover</a>
+  <a href="#s7">7. Connect SSMS</a>
+  <a href="#s8">8. Build dacpac</a>
+  <a href="#ref">Reference</a>
+</nav>
+
+<div class="main">
+
+<!-- HERO -->
+<div class="hero" style="animation: fadeScale .5s ease both">
+  <h1>DBA Lab Setup Guide</h1>
+  <p>SQL Server CI/CD with Always On Availability Groups on Docker. Four environments, certificate-based HA, SSDT schema-as-code, dacpac deployment pipeline.</p>
+  <div class="hero-badges">
+    <span class="badge badge--accent">SQL Server 2019</span>
+    <span class="badge badge--green">Always On AG</span>
+    <span class="badge badge--accent">SSDT</span>
+    <span class="badge">dacpac</span>
+    <span class="badge">Docker</span>
+    <span class="badge">PowerShell</span>
+  </div>
+</div>
+
+<!-- ARCHITECTURE -->
+<div class="arch" style="animation: fadeUp .4s ease .1s both">
+  <div class="arch-grid">
+    <div class="arch-node">
+      <span class="arch-node__name">sql-dev</span>
+      <span class="arch-node__port">localhost:1401</span>
+      <span class="arch-node__label label--dev">Dev</span>
+    </div>
+    <div class="arch-node">
+      <span class="arch-node__name">sql-staging</span>
+      <span class="arch-node__port">localhost:1402</span>
+      <span class="arch-node__label label--stg">Staging</span>
+    </div>
+    <div class="arch-node ha">
+      <span class="arch-node__name">sql-prod-1</span>
+      <span class="arch-node__port">localhost:1403</span>
+      <span class="arch-node__label label--pri">Primary</span>
+    </div>
+    <div class="arch-node ha">
+      <span class="arch-node__name">sql-prod-2</span>
+      <span class="arch-node__port">localhost:1404</span>
+      <span class="arch-node__label label--sec">Secondary</span>
+    </div>
+  </div>
+  <div class="ag-link">
+    <svg width="20" height="14" viewBox="0 0 20 14" fill="none"><path d="M1 7h18M14 1l6 6-6 6" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+    AG Replication &middot; Synchronous Commit &middot; Certificate Auth &middot; Port 5022
+    <svg width="20" height="14" viewBox="0 0 20 14" fill="none"><path d="M19 7H1M6 1L0 7l6 6" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+  </div>
+  <div class="pipeline">
+    <div class="pipe-step" style="border-color: var(--accent)">Dev :1401</div>
+    <span class="pipe-arrow">&rarr;</span>
+    <div class="pipe-step" style="border-color: var(--amber)">Staging :1402</div>
+    <span class="pipe-arrow">&rarr;</span>
+    <div class="pipe-step" style="border-color: var(--green)">Prod :1403</div>
+    <span class="pipe-arrow">&rarr;</span>
+    <div class="pipe-step" style="border-color: var(--teal); border-style: dashed">AG Replica :1404</div>
+  </div>
+</div>
+
+
+<!-- STEP 0: PREREQUISITES -->
+<div id="s0" class="sec-head"><span class="dot dot--accent"></span>0 &mdash; Prerequisites</div>
+
+<div class="step" style="--i:0">
+  <h3>What You Need Installed</h3>
+  <div class="tbl-wrap">
+    <table>
+      <thead><tr><th>Tool</th><th>Why</th><th>Get It</th></tr></thead>
+      <tbody>
+        <tr><td><strong>Docker Desktop</strong></td><td>Runs all SQL Server containers</td><td><code>winget install Docker.DockerDesktop</code></td></tr>
+        <tr><td><strong>PowerShell 5.1+</strong></td><td>All scripts are <code>.ps1</code> — ships with Windows</td><td>Built-in</td></tr>
+        <tr><td><strong>Git</strong></td><td>Clone the repo</td><td><code>winget install Git.Git</code></td></tr>
+        <tr><td><strong>Visual Studio + SSDT</strong></td><td>Build SSDT projects (<code>.sqlproj</code>) to produce <code>.dacpac</code> artifacts</td><td>VS 2019/2022 with Data Storage and Processing workload</td></tr>
+        <tr><td><strong>SSMS</strong> (optional)</td><td>Visual SQL management, connect to all instances</td><td><code>winget install Microsoft.SQLServerManagementStudio</code></td></tr>
+      </tbody>
+    </table>
+  </div>
+  <div class="callout callout--info">
+    <strong>Docker settings:</strong> Allocate at least <strong>4 GB RAM</strong> to Docker Desktop (Settings &rarr; Resources). Four SQL Server containers need ~4 GB minimum.
+  </div>
+</div>
+
+
+<!-- STEP 1: CONFIGURE -->
+<div id="s1" class="sec-head"><span class="dot dot--accent"></span>1 &mdash; Clone &amp; Configure</div>
+
+<div class="step" style="--i:1">
+  <span class="step-num">1</span>
+  <h3>Clone the Repository</h3>
+  <span class="cmd-label">PowerShell</span>
+  <pre><code>git clone https://github.com/lorenzouriel/dba-lab.git</code></pre>
+</div>
+
+<div class="step" style="--i:2">
+  <span class="step-num">2</span>
+  <h3>Create Your .env File</h3>
+  <span class="cmd-label">PowerShell</span>
+  <pre><code>Copy-Item .env.example .env</code></pre>
+  <p>Edit <code>.env</code> and set your passwords:</p>
+  <pre><code># .env
+SA_PASSWORD=YourStrong!Pass2024
+ACCEPT_EULA=Y
+
+</code></pre>
+  <div class="callout">
+    <strong>Password rules:</strong> SA_PASSWORD must be 8+ chars with uppercase, lowercase, digit, and special char. SQL Server rejects weak passwords.
+  </div>
+</div>
+
+
+<!-- STEP 2: START INFRA -->
+<div id="s2" class="sec-head"><span class="dot dot--green"></span>2 &mdash; Start Infrastructure</div>
+
+<div class="step step--elevated" style="--i:3">
+  <span class="step-num step-num--green">3</span>
+  <h3>Start the SQL Server Containers</h3>
+  <span class="cmd-label">PowerShell</span>
+  <pre><code>.\dba-lab.ps1 up</code></pre>
+  <p>This starts 4 containers:</p>
+  <div class="tbl-wrap">
+    <table>
+      <thead><tr><th>Container</th><th>Port</th><th>Edition</th><th>HADR</th><th>Purpose</th></tr></thead>
+      <tbody>
+        <tr><td><code>sql-dev</code></td><td>1401</td><td>Developer</td><td>&mdash;</td><td>Dev environment</td></tr>
+        <tr><td><code>sql-staging</code></td><td>1402</td><td>Developer</td><td>&mdash;</td><td>Staging environment</td></tr>
+        <tr><td><code>sql-prod-1</code></td><td>1403</td><td>Developer</td><td style="color:var(--green);font-weight:600">Enabled</td><td>Production primary</td></tr>
+        <tr><td><code>sql-prod-2</code></td><td>1404</td><td>Developer</td><td style="color:var(--green);font-weight:600">Enabled</td><td>Production secondary</td></tr>
+      </tbody>
+    </table>
+  </div>
+  <p>Wait ~30 seconds for all instances to become healthy.</p>
+</div>
+
+<div class="step" style="--i:4">
+  <span class="step-num step-num--green">4</span>
+  <h3>Verify Containers Are Running</h3>
+  <span class="cmd-label">PowerShell</span>
+  <pre><code>docker ps --format "table {{.Names}}\t{{.Status}}\t{{.Ports}}"</code></pre>
+  <p>You should see all 4 containers with status <code>(healthy)</code>.</p>
+</div>
+
+<div class="callout callout--info">
+  <strong>What's happening:</strong> Each container runs SQL Server 2019 Developer Edition on Linux. The <code>MSSQL_ENABLE_HADR=1</code> env var on prod nodes enables Always On AG support at startup. The <code>ag-shared</code> Docker volume is mounted on both prod nodes for certificate exchange.
+</div>
+
+
+<!-- STEP 3: INIT DATABASES -->
+<div id="s3" class="sec-head"><span class="dot dot--amber"></span>3 &mdash; Initialize Databases</div>
+
+<div class="step step--elevated" style="--i:5">
+  <span class="step-num step-num--amber">5</span>
+  <h3>Build &amp; Deploy Schema via dacpac</h3>
+  <span class="cmd-label">PowerShell</span>
+  <pre><code>.\dba-lab.ps1 init</code></pre>
+  <p>This runs <code>scripts\init\init-all.ps1</code> which, for each of the 4 containers:</p>
+  <ul>
+    <li>Waits for SQL Server to become ready</li>
+    <li>Builds <code>db.sqlproj</code> via MSBuild &rarr; produces <code>.dacpac</code> artifact</li>
+    <li>Publishes <strong>AppDB</strong> dacpac via <code>SqlPackage /Action:Publish</code> &mdash; creates database if needed, diffs schema, applies delta</li>
+    <li>Verifies deployed objects (tables, procedures, views)</li>
+  </ul>
+  <div class="callout callout--success">
+    <strong>No hardcoded object lists.</strong> All tables, procedures, views, and post-deployment scripts are defined in the <code>.sqlproj</code> files. Add a new <code>.sql</code> file to the project and it deploys automatically &mdash; no script changes needed.
+  </div>
+</div>
+
+<div class="step" style="--i:6">
+  <h3>SSDT Project Structure</h3>
+  <p>SSDT project builds to <code>.dacpac</code> for <code>SqlPackage</code> deployment.</p>
+  <div class="file-tree">
+    <span class="hl">db/</span><br>
+    &nbsp;&nbsp;db.sln &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="dim">&larr; Visual Studio solution</span><br>
+    &nbsp;&nbsp;<span class="hl">db.sqlproj</span> &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="dim">&larr; AppDB project (Sql150 / SQL Server 2019)</span><br>
+    &nbsp;&nbsp;Tables/<br>
+    &nbsp;&nbsp;&nbsp;&nbsp;Folder.sql &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="dim">&larr; self-referencing FK (parent folder)</span><br>
+    &nbsp;&nbsp;&nbsp;&nbsp;User.sql &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="dim">&larr; unique index on ExternalId</span><br>
+    &nbsp;&nbsp;&nbsp;&nbsp;Session.sql &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="dim">&larr; FKs to Folder + User, filtered indexes</span><br>
+    &nbsp;&nbsp;&nbsp;&nbsp;SessionAccess.sql &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="dim">&larr; junction table, unique constraint</span><br>
+    &nbsp;&nbsp;StoredProcedures/<br>
+    &nbsp;&nbsp;&nbsp;&nbsp;getSessionById.sql<br>
+    &nbsp;&nbsp;&nbsp;&nbsp;getSessionsByFolder.sql &nbsp;&nbsp;&nbsp;<span class="dim">&larr; paginated with OFFSET/FETCH</span><br>
+    &nbsp;&nbsp;Views/<br>
+    &nbsp;&nbsp;&nbsp;&nbsp;vwActiveSessions.sql &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="dim">&larr; state IN (1,2)</span><br>
+    &nbsp;&nbsp;PostDeployment/<br>
+    &nbsp;&nbsp;&nbsp;&nbsp;Script.PostDeployment.sql<br>
+    &nbsp;&nbsp;&nbsp;&nbsp;MigrationScripts/<br>
+    &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;1.0.0_RTC_SeedReferenceData.sql <span class="dim">&larr; idempotent</span>
+  </div>
+  <div class="callout callout--info">
+    <strong>Build &amp; deploy:</strong> Right-click project in Visual Studio &rarr; <strong>Build</strong> produces <code>.dacpac</code>. Deploy with <code>sqlpackage /Action:Publish /SourceFile:db.dacpac /TargetServerName:localhost,1401 /TargetDatabaseName:AppDB</code>.
+  </div>
+</div>
+
+
+<!-- STEP 4: SETUP AG -->
+<div id="s4" class="sec-head"><span class="dot dot--green"></span>4 &mdash; Configure Availability Group</div>
+
+<div class="callout callout--success">
+  <strong>This is the core HA step.</strong> It creates a two-node Always On AG between sql-prod-1 (primary) and sql-prod-2 (secondary) using certificate-based authentication &mdash; no Active Directory required.
+</div>
+
+<div class="step step--elevated" style="--i:7">
+  <span class="step-num step-num--green">6</span>
+  <h3>Run the AG Setup</h3>
+  <span class="cmd-label">PowerShell</span>
+  <pre><code>.\dba-lab.ps1 ag</code></pre>
+  <p>This orchestrates 6 internal steps:</p>
+</div>
+
+<div class="step" style="--i:8">
+  <h3>What Happens Under the Hood</h3>
+  <div class="tbl-wrap">
+    <table>
+      <thead><tr><th>#</th><th>Step</th><th>Node</th><th>What It Does</th></tr></thead>
+      <tbody>
+        <tr><td>1</td><td><strong>Verify HADR</strong></td><td>Both</td><td>Checks <code>SERVERPROPERTY('IsHadrEnabled') = 1</code></td></tr>
+        <tr><td>2</td><td><strong>FULL Recovery</strong></td><td>prod-1</td><td><code>ALTER DATABASE [AppDB] SET RECOVERY FULL</code></td></tr>
+        <tr><td>3</td><td><strong>Full Backup</strong></td><td>prod-1</td><td>Backup to shared volume: <code>/var/opt/mssql/shared/AppDB_full.bak</code></td></tr>
+        <tr><td>4</td><td><strong>Configure Primary</strong></td><td>prod-1</td><td>Master key &rarr; Certificate &rarr; Backup cert to shared volume &rarr; Endpoint (5022) &rarr; Create AG</td></tr>
+        <tr><td>5</td><td><strong>Configure Secondary</strong></td><td>prod-2</td><td>Master key &rarr; Restore cert from shared volume &rarr; Endpoint (5022) &rarr; Join AG</td></tr>
+        <tr><td>6</td><td><strong>Automatic Seeding</strong></td><td>Both</td><td>AG automatically replicates AppDB to secondary (~10s wait)</td></tr>
+      </tbody>
+    </table>
+  </div>
+</div>
+
+<div class="step" style="--i:9">
+  <h3>AG Configuration Details</h3>
+  <pre><code>CREATE AVAILABILITY GROUP [AppDB_AG]
+WITH (
+    CLUSTER_TYPE = NONE,       -- No WSFC needed (Docker)
+    DB_FAILOVER = ON
+)
+FOR DATABASE [AppDB]
+REPLICA ON
+    N'sql-prod-1' WITH (
+        ENDPOINT_URL       = N'TCP://sql-prod-1:5022',
+        AVAILABILITY_MODE  = SYNCHRONOUS_COMMIT,
+        FAILOVER_MODE      = MANUAL,
+        SEEDING_MODE       = AUTOMATIC,
+        SECONDARY_ROLE (ALLOW_CONNECTIONS = ALL)
+    ),
+    N'sql-prod-2' WITH (
+        ENDPOINT_URL       = N'TCP://sql-prod-2:5022',
+        AVAILABILITY_MODE  = SYNCHRONOUS_COMMIT,
+        FAILOVER_MODE      = MANUAL,
+        SEEDING_MODE       = AUTOMATIC,
+        SECONDARY_ROLE (ALLOW_CONNECTIONS = READ_ONLY)
+    );</code></pre>
+</div>
+
+<div class="step" style="--i:10">
+  <span class="step-num step-num--green">7</span>
+  <h3>Verify AG Status</h3>
+  <span class="cmd-label">PowerShell</span>
+  <pre><code>.\dba-lab.ps1 status</code></pre>
+  <p>Expected output: both replicas show <code>SYNCHRONIZED</code> and <code>CONNECTED</code>.</p>
+</div>
+
+
+<!-- STEP 5: DEPLOY PIPELINE -->
+<div id="s5" class="sec-head"><span class="dot dot--amber"></span>5 &mdash; Run the Deployment Pipeline</div>
+
+<div class="step" style="--i:11">
+  <h3>Four-Step Deploy Process (per environment)</h3>
+  <p>Each deployment builds the dacpac from source and publishes via <code>SqlPackage</code>:</p>
+  <div class="pipeline">
+    <div class="pipe-step" style="border-color:var(--accent)"><strong>BUILD</strong><br><small>msbuild &rarr; .dacpac</small></div>
+    <span class="pipe-arrow">&rarr;</span>
+    <div class="pipe-step" style="border-color:var(--amber)"><strong>SCRIPT</strong><br><small>SqlPackage diff preview</small></div>
+    <span class="pipe-arrow">&rarr;</span>
+    <div class="pipe-step" style="border-color:var(--green)"><strong>PUBLISH</strong><br><small>SqlPackage apply</small></div>
+    <span class="pipe-arrow">&rarr;</span>
+    <div class="pipe-step" style="border-color:var(--teal)"><strong>VERIFY</strong><br><small>Post-deploy check</small></div>
+  </div>
+  <div class="callout callout--info">
+    <strong>Diff scripts saved to <code>scripts/deploy/output/</code></strong> with timestamp. Review what SqlPackage will change before it applies.
+  </div>
+</div>
+
+<div class="step step--elevated" style="--i:12">
+  <span class="step-num step-num--amber">8</span>
+  <h3>Deploy to Each Environment</h3>
+  <span class="cmd-label">Individual Deployments</span>
+  <pre><code># Deploy to Dev only
+.\dba-lab.ps1 deploy-dev
+
+# Deploy to Staging only
+.\dba-lab.ps1 deploy-staging
+
+# Deploy to Prod (primary only — AG replicates)
+.\dba-lab.ps1 deploy-prod</code></pre>
+  <span class="cmd-label">Full Pipeline (with manual promotion gates)</span>
+  <pre><code># Runs Dev → asks "Promote to Staging?" → Staging → asks "Promote to Prod?" → Prod
+.\dba-lab.ps1 deploy-all</code></pre>
+  <div class="callout callout--info">
+    <strong>Prod deploys to primary only.</strong> AG replicates schema changes (DDL) automatically to sql-prod-2. The deploy script verifies replication after applying to prod-1.
+  </div>
+</div>
+
+<div class="step" style="--i:13">
+  <span class="step-num step-num--amber">9</span>
+  <h3>Validate Cross-Environment Schema</h3>
+  <span class="cmd-label">PowerShell</span>
+  <pre><code>.\dba-lab.ps1 validate</code></pre>
+  <p>Compares schema objects across all 4 instances. If all show identical tables/procedures/views, there is no environment drift.</p>
+</div>
+
+
+<!-- STEP 6: TEST FAILOVER -->
+<div id="s6" class="sec-head"><span class="dot dot--red"></span>6 &mdash; Test Failover</div>
+
+<div class="step step--elevated" style="--i:14">
+  <span class="step-num step-num--red">10</span>
+  <h3>Failover to Secondary</h3>
+  <span class="cmd-label">PowerShell</span>
+  <pre><code># Check current state first
+.\dba-lab.ps1 status
+
+# Execute failover: sql-prod-1 → sql-prod-2
+.\dba-lab.ps1 failover</code></pre>
+  <p>This runs <code>ALTER AVAILABILITY GROUP [AppDB_AG] FORCE_FAILOVER_ALLOW_DATA_LOSS</code> on sql-prod-2, promoting it to primary.</p>
+  <div class="callout">
+    <strong>CLUSTER_TYPE=NONE requires manual failover.</strong> In production with WSFC or Pacemaker, failover would be automatic. This lab uses manual failover to match the controlled deployment model.
+  </div>
+</div>
+
+<div class="step" style="--i:15">
+  <h3>After Failover</h3>
+  <ul>
+    <li><code>sql-prod-2</code> is now PRIMARY (read-write)</li>
+    <li><code>sql-prod-1</code> needs to rejoin as secondary</li>
+    <li>To resume sync: restart sql-prod-1 container, then set role to SECONDARY</li>
+  </ul>
+</div>
+
+
+<!-- STEP 7: SSMS CONNECTION -->
+<div id="s7" class="sec-head"><span class="dot dot--teal"></span>7 &mdash; Connect via SSMS</div>
+
+<div class="step" style="--i:16">
+  <h3>Connection Details</h3>
+  <div class="tbl-wrap">
+    <table>
+      <thead><tr><th>Environment</th><th>Server</th><th>Login</th><th>Password</th><th>Notes</th></tr></thead>
+      <tbody>
+        <tr><td style="color:var(--accent);font-weight:600">Dev</td><td><code>localhost,1401</code></td><td><code>sa</code></td><td>from .env</td><td>Full read-write</td></tr>
+        <tr><td style="color:var(--amber);font-weight:600">Staging</td><td><code>localhost,1402</code></td><td><code>sa</code></td><td>from .env</td><td>Full read-write</td></tr>
+        <tr><td style="color:var(--green);font-weight:600">Prod Primary</td><td><code>localhost,1403</code></td><td><code>sa</code></td><td>from .env</td><td>AG primary, read-write</td></tr>
+        <tr><td style="color:var(--teal);font-weight:600">Prod Secondary</td><td><code>localhost,1404</code></td><td><code>sa</code></td><td>from .env</td><td>AG secondary, read-only</td></tr>
+      </tbody>
+    </table>
+  </div>
+  <div class="callout callout--info">
+    <strong>SSMS tip:</strong> In Connection Properties, check "Trust server certificate" to avoid SSL warnings from Docker containers.
+  </div>
+</div>
+
+
+<!-- STEP 8: BUILD DACPAC -->
+<div id="s8" class="sec-head"><span class="dot dot--accent"></span>8 &mdash; Build dacpac from SSDT</div>
+
+<div class="callout callout--info">
+  <strong>Why dacpac?</strong> A <code>.dacpac</code> is a compiled snapshot of your database schema. When you publish it, <code>sqlpackage</code> compares it against the target database and generates only the delta &mdash; CREATE, ALTER, or DROP as needed. No manual scripting, no &ldquo;object already exists&rdquo; errors.
+</div>
+
+<div class="step step--elevated" style="--i:23">
+  <span class="step-num">14</span>
+  <h3>Open the Solution in Visual Studio</h3>
+  <p>Open <code>db\db.sln</code> in Visual Studio. You should see the <strong>db</strong> project in Solution Explorer:</p>
+  <div class="tbl-wrap">
+    <table>
+      <thead><tr><th>Project</th><th>Target Database</th><th>DSP</th><th>Output</th></tr></thead>
+      <tbody>
+        <tr><td><strong>db</strong></td><td>AppDB</td><td>Sql150 (SQL Server 2019)</td><td><code>bin\Release\db.dacpac</code></td></tr>
+      </tbody>
+    </table>
+  </div>
+</div>
+
+<div class="step" style="--i:24">
+  <span class="step-num">15</span>
+  <h3>Build the dacpac</h3>
+  <span class="cmd-label">Visual Studio</span>
+  <pre><code>Right-click Solution &rarr; Build Solution (Ctrl+Shift+B)</code></pre>
+  <span class="cmd-label">Or from Developer Command Prompt</span>
+  <pre><code>msbuild db\db.sln /p:Configuration=Release /v:quiet</code></pre>
+  <p>Build validates all SQL at compile time &mdash; broken references, missing columns, invalid syntax are caught before deployment.</p>
+</div>
+
+<div class="step" style="--i:25">
+  <span class="step-num">16</span>
+  <h3>Test Locally with sqlpackage</h3>
+  <p>Verify the dacpac publishes correctly against your Docker instances:</p>
+  <span class="cmd-label">PowerShell</span>
+  <pre><code># Publish AppDB to Dev
+sqlpackage /Action:Publish `
+    /SourceFile:db\bin\Release\db.dacpac `
+    /TargetServerName:"localhost,1401" `
+    /TargetDatabaseName:AppDB `
+    /TargetUser:sa `
+    /TargetPassword:$env:SA_PASSWORD `
+    /TargetTrustServerCertificate:True `
+    /p:BlockOnPossibleDataLoss=True</code></pre>
+  <div class="callout callout--success">
+    <strong>Idempotent.</strong> Run this as many times as you want. If schema matches, sqlpackage reports &ldquo;no actions performed.&rdquo; If you changed a column type, it generates the ALTER. This is the real power over raw SQL scripts.
+  </div>
+</div>
+
+<div class="step" style="--i:26">
+  <h3>Preview Changes Without Applying</h3>
+  <p>Generate the diff script without touching the database:</p>
+  <span class="cmd-label">PowerShell</span>
+  <pre><code># Script only (no publish)
+sqlpackage /Action:Script `
+    /SourceFile:db\bin\Release\db.dacpac `
+    /TargetServerName:"localhost,1401" `
+    /TargetDatabaseName:AppDB `
+    /TargetUser:sa `
+    /TargetPassword:$env:SA_PASSWORD `
+    /TargetTrustServerCertificate:True `
+    /OutputPath:diff_preview.sql `
+    /p:BlockOnPossibleDataLoss=True</code></pre>
+  <p>Open <code>diff_preview.sql</code> to review exactly what sqlpackage will do.</p>
+</div>
+
+
+<!-- REFERENCE -->
+
+<div class="step" style="--i:21">
+  <h3>All CLI Commands</h3>
+  <div class="tbl-wrap">
+    <table>
+      <thead><tr><th>Command</th><th>What It Does</th></tr></thead>
+      <tbody>
+        <tr><td><code>.\dba-lab.ps1 up</code></td><td>Start 4 SQL Server containers</td></tr>
+        <tr><td><code>.\dba-lab.ps1 down</code></td><td>Stop all containers</td></tr>
+        <tr><td><code>.\dba-lab.ps1 clean</code></td><td>Stop + remove all volumes (full reset)</td></tr>
+        <tr><td><code>.\dba-lab.ps1 init</code></td><td>Create databases + deploy schema</td></tr>
+        <tr><td><code>.\dba-lab.ps1 ag</code></td><td>Configure AG between prod nodes</td></tr>
+        <tr><td><code>.\dba-lab.ps1 status</code></td><td>Show AG replication status</td></tr>
+        <tr><td><code>.\dba-lab.ps1 failover</code></td><td>Manual failover to sql-prod-2</td></tr>
+        <tr><td><code>.\dba-lab.ps1 deploy-dev</code></td><td>Deploy to Dev</td></tr>
+        <tr><td><code>.\dba-lab.ps1 deploy-staging</code></td><td>Deploy to Staging</td></tr>
+        <tr><td><code>.\dba-lab.ps1 deploy-prod</code></td><td>Deploy to Prod (AG replicates)</td></tr>
+        <tr><td><code>.\dba-lab.ps1 deploy-all</code></td><td>Full pipeline with promotion gates</td></tr>
+        <tr><td><code>.\dba-lab.ps1 validate</code></td><td>Cross-env schema drift check</td></tr>
+        <tr><td><code>msbuild db\db.sln /p:Configuration=Release</code></td><td>Build dacpac from SSDT project</td></tr>
+        <tr><td><code>sqlpackage /Action:Publish ...</code></td><td>Deploy dacpac to target database</td></tr>
+        <tr><td><code>sqlpackage /Action:Script ...</code></td><td>Generate diff script (preview only)</td></tr>
+        <tr><td colspan="2" style="text-align:center;color:var(--text-dim);font-style:italic">For Octopus Deploy, see <code>octopus-lab/</code></td></tr>
+      </tbody>
+    </table>
+  </div>
+</div>
+
+<div class="step" style="--i:22">
+  <h3>Full Setup Sequence (copy-paste)</h3>
+  <pre><code># 1. Configure
+Copy-Item .env.example .env        # edit passwords
+
+# 2. Start
+.\dba-lab.ps1 up                   # start SQL containers
+
+# 3. Wait ~30s for containers to become healthy
+docker ps
+
+# 4. Initialize databases + schema
+.\dba-lab.ps1 init
+
+# 5. Configure Always On AG
+.\dba-lab.ps1 ag
+
+# 6. Verify AG
+.\dba-lab.ps1 status
+
+# 7. Run full deployment pipeline
+.\dba-lab.ps1 deploy-all
+
+# 8. Test failover
+.\dba-lab.ps1 failover
+
+# 9. Verify cross-env schema
+.\dba-lab.ps1 validate
+
+# 10. (Optional) Build dacpac manually
+msbuild db\db.sln /p:Configuration=Release /v:quiet
+sqlpackage /Action:Publish /SourceFile:db\bin\Release\db.dacpac `
+    /TargetServerName:"localhost,1401" /TargetDatabaseName:AppDB `
+    /TargetUser:sa /TargetPassword:$env:SA_PASSWORD `
+    /TargetTrustServerCertificate:True</code></pre>
+</div>
+
+</div><!-- /main -->
+</div><!-- /wrap -->
+
+<script>
+// TOC active state tracking
+const tocLinks = document.querySelectorAll('.toc a');
+const sections = document.querySelectorAll('.sec-head');
+const observer = new IntersectionObserver((entries) => {
+  entries.forEach(entry => {
+    if (entry.isIntersecting) {
+      tocLinks.forEach(a => a.classList.remove('active'));
+      const id = entry.target.id;
+      const link = document.querySelector(`.toc a[href="#${id}"]`);
+      if (link) link.classList.add('active');
+    }
+  });
+}, { rootMargin: '-20% 0px -70% 0px' });
+sections.forEach(s => observer.observe(s));
+</script>
+</body>
+</html>

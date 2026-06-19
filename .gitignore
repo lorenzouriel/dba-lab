@@ -1,0 +1,21 @@
+.env
+
+# Claude Code local settings (may contain secrets)
+.claude/
+
+# MSBuild / Visual Studio
+*.suo
+*.user
+*.userosscache
+*.sln.docstates
+[Bb]in/
+[Oo]bj/
+[Dd]ebug/
+[Rr]elease/
+.vs/
+*.dacpac
+*.dll
+*.pdb
+
+# Deploy output (generated diff scripts)
+scripts/deploy/output/
