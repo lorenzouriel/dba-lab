@@ -56,6 +56,7 @@
   <Import Condition="'$(SQLDBExtensionsRefPath)' == ''" Project="$(MSBuildExtensionsPath)\Microsoft\VisualStudio\v$(VisualStudioVersion)\SSDT\Microsoft.Data.Tools.Schema.SqlTasks.targets" />
   <ItemGroup>
     <Folder Include="Properties" />
+    <Folder Include="Security" />
     <Folder Include="Tables" />
     <Folder Include="StoredProcedures" />
     <Folder Include="Views" />
@@ -63,18 +64,31 @@
     <Folder Include="PostDeployment\MigrationScripts" />
   </ItemGroup>
   <ItemGroup>
-    <Build Include="Tables\Folder.sql" />
-    <Build Include="Tables\User.sql" />
-    <Build Include="Tables\Session.sql" />
-    <Build Include="Tables\SessionAccess.sql" />
-    <Build Include="StoredProcedures\getSessionById.sql" />
-    <Build Include="StoredProcedures\getSessionsByFolder.sql" />
-    <Build Include="Views\vwActiveSessions.sql" />
+    <Build Include="Security\finance.sql" />
+    <Build Include="Security\plan.sql" />
+    <Build Include="Security\reporting.sql" />
+    <Build Include="Security\investment.sql" />
+    <Build Include="Tables\users.sql" />
+    <Build Include="Tables\budgets.sql" />
+    <Build Include="Tables\goals.sql" />
+    <Build Include="Tables\earnings.sql" />
+    <Build Include="Tables\expenses.sql" />
+    <Build Include="Tables\investments.sql" />
+    <Build Include="Tables\bills.sql" />
+    <Build Include="StoredProcedures\getUserById.sql" />
+    <Build Include="StoredProcedures\getBudgetsByUser.sql" />
+    <Build Include="StoredProcedures\getGoalsByUser.sql" />
+    <Build Include="StoredProcedures\getEarningsByUser.sql" />
+    <Build Include="StoredProcedures\getExpensesByUser.sql" />
+    <Build Include="StoredProcedures\getInvestmentsByUser.sql" />
+    <Build Include="StoredProcedures\getBillsByUser.sql" />
+    <Build Include="Views\vwUserFinancialSummary.sql" />
+    <Build Include="Views\vwUpcomingBills.sql" />
   </ItemGroup>
   <ItemGroup>
     <PostDeploy Include="PostDeployment\Script.PostDeployment.sql" />
   </ItemGroup>
   <ItemGroup>
-    <None Include="PostDeployment\MigrationScripts\1.0.0_RTC_SeedReferenceData.sql" />
+    <None Include="PostDeployment\MigrationScripts\1.0.0_SeedReferenceData.sql" />
   </ItemGroup>
 </Project>

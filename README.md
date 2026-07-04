@@ -96,9 +96,11 @@ dba-lab/
 ├── db/                             # SSDT solution (Visual Studio)
 │   ├── db.sln                      # Solution file
 │   ├── db.sqlproj                  # AppDB project (SQL Server 2019 / Sql150)
-│   ├── Tables/                     # Folder, User, Session, SessionAccess
-│   ├── StoredProcedures/           # getSessionById, getSessionsByFolder
-│   ├── Views/                      # vwActiveSessions
+│   ├── Security/                   # finance, plan, reporting, investment schemas
+│   ├── Tables/                     # users, budgets, goals, earnings, expenses, investments, bills
+│   ├── StoredProcedures/           # getUserById, getBudgetsByUser, getGoalsByUser, getEarningsByUser,
+│   │                               # getExpensesByUser, getInvestmentsByUser, getBillsByUser
+│   ├── Views/                      # vwUserFinancialSummary, vwUpcomingBills
 │   └── PostDeployment/             # Script.PostDeployment.sql + migrations
 │
 ├── scripts/

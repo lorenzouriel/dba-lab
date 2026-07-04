@@ -4,7 +4,7 @@
 PRINT '=== PostDeployment: Start ===';
 GO
 
-:r .\MigrationScripts\1.0.0_RTC_SeedReferenceData.sql
+:r .\MigrationScripts\1.0.0_SeedReferenceData.sql
 GO
 
 PRINT '=== PostDeployment: Complete ===';

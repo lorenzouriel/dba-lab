@@ -580,18 +580,12 @@ $db     = $OctopusParameters['Database.Name']
 sqlcmd -S "$server,$port" -U sa -P $pass -d $db -No -b `
     -Q "
 SET QUOTED_IDENTIFIER ON;
-IF NOT EXISTS (SELECT 1 FROM [dbo].[Folder] WHERE [Name] = N'Root')
+IF NOT EXISTS (SELECT 1 FROM [dbo].[users] WHERE [email] = N'demo@localhost')
 BEGIN
-    DECLARE @uid UNIQUEIDENTIFIER;
-    IF NOT EXISTS (SELECT 1 FROM [dbo].[User] WHERE [ExternalId] = N'SYSTEM')
-    BEGIN
-        SET @uid = NEWID();
-        INSERT INTO [dbo].[User] ([Id],[ExternalId],[DisplayName],[Email],[Role])
-        VALUES (@uid, N'SYSTEM', N'System', N'system@localhost', 255);
-    END ELSE SELECT @uid = [Id] FROM [dbo].[User] WHERE [ExternalId] = N'SYSTEM';
-    INSERT INTO [dbo].[Folder] ([Name],[ParentFolderId],[CreatedBy]) VALUES (N'Root', NULL, @uid);
-    PRINT 'Root folder seeded';
-END ELSE PRINT 'Root folder exists';
+    INSERT INTO [dbo].[users] ([username],[email],[phone_number])
+    VALUES (N'demo', N'demo@localhost', N'000-000-0000');
+    PRINT 'Demo user seeded';
+END ELSE PRINT 'Demo user exists';
 "
 
 if ($LASTEXITCODE -ne 0) { Write-Warning "Post-deploy returned non-zero" }

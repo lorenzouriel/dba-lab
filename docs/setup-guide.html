@@ -648,20 +648,29 @@ ACCEPT_EULA=Y
     <span class="hl">db/</span><br>
     &nbsp;&nbsp;db.sln &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="dim">&larr; Visual Studio solution</span><br>
     &nbsp;&nbsp;<span class="hl">db.sqlproj</span> &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="dim">&larr; AppDB project (Sql150 / SQL Server 2019)</span><br>
+    &nbsp;&nbsp;Security/<br>
+    &nbsp;&nbsp;&nbsp;&nbsp;finance.sql, plan.sql, reporting.sql, investment.sql <span class="dim">&larr; CREATE SCHEMA</span><br>
     &nbsp;&nbsp;Tables/<br>
-    &nbsp;&nbsp;&nbsp;&nbsp;Folder.sql &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="dim">&larr; self-referencing FK (parent folder)</span><br>
-    &nbsp;&nbsp;&nbsp;&nbsp;User.sql &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="dim">&larr; unique index on ExternalId</span><br>
-    &nbsp;&nbsp;&nbsp;&nbsp;Session.sql &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="dim">&larr; FKs to Folder + User, filtered indexes</span><br>
-    &nbsp;&nbsp;&nbsp;&nbsp;SessionAccess.sql &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="dim">&larr; junction table, unique constraint</span><br>
+    &nbsp;&nbsp;&nbsp;&nbsp;users.sql &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="dim">&larr; extended properties for column docs</span><br>
+    &nbsp;&nbsp;&nbsp;&nbsp;budgets.sql, goals.sql &nbsp;&nbsp;&nbsp;<span class="dim">&larr; FK-supporting index on user_id</span><br>
+    &nbsp;&nbsp;&nbsp;&nbsp;earnings.sql, expenses.sql &nbsp;<span class="dim">&larr; category, payment_method, currency_code</span><br>
+    &nbsp;&nbsp;&nbsp;&nbsp;investments.sql &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="dim">&larr; profit_loss, annual_yield_percent</span><br>
+    &nbsp;&nbsp;&nbsp;&nbsp;bills.sql &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="dim">&larr; recurring bill templates, due_day check constraint</span><br>
     &nbsp;&nbsp;StoredProcedures/<br>
-    &nbsp;&nbsp;&nbsp;&nbsp;getSessionById.sql<br>
-    &nbsp;&nbsp;&nbsp;&nbsp;getSessionsByFolder.sql &nbsp;&nbsp;&nbsp;<span class="dim">&larr; paginated with OFFSET/FETCH</span><br>
+    &nbsp;&nbsp;&nbsp;&nbsp;getUserById.sql<br>
+    &nbsp;&nbsp;&nbsp;&nbsp;getBudgetsByUser.sql &nbsp;&nbsp;&nbsp;&nbsp;<span class="dim">&larr; paginated with OFFSET/FETCH</span><br>
+    &nbsp;&nbsp;&nbsp;&nbsp;getGoalsByUser.sql<br>
+    &nbsp;&nbsp;&nbsp;&nbsp;getEarningsByUser.sql<br>
+    &nbsp;&nbsp;&nbsp;&nbsp;getExpensesByUser.sql<br>
+    &nbsp;&nbsp;&nbsp;&nbsp;getInvestmentsByUser.sql<br>
+    &nbsp;&nbsp;&nbsp;&nbsp;getBillsByUser.sql<br>
     &nbsp;&nbsp;Views/<br>
-    &nbsp;&nbsp;&nbsp;&nbsp;vwActiveSessions.sql &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="dim">&larr; state IN (1,2)</span><br>
+    &nbsp;&nbsp;&nbsp;&nbsp;vwUserFinancialSummary.sql &nbsp;<span class="dim">&larr; earnings vs. expenses, net balance</span><br>
+    &nbsp;&nbsp;&nbsp;&nbsp;vwUpcomingBills.sql &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="dim">&larr; computed due date for current month</span><br>
     &nbsp;&nbsp;PostDeployment/<br>
     &nbsp;&nbsp;&nbsp;&nbsp;Script.PostDeployment.sql<br>
     &nbsp;&nbsp;&nbsp;&nbsp;MigrationScripts/<br>
-    &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;1.0.0_RTC_SeedReferenceData.sql <span class="dim">&larr; idempotent</span>
+    &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;1.0.0_SeedReferenceData.sql <span class="dim">&larr; idempotent</span>
   </div>
   <div class="callout callout--info">
     <strong>Build &amp; deploy:</strong> Right-click project in Visual Studio &rarr; <strong>Build</strong> produces <code>.dacpac</code>. Deploy with <code>sqlpackage /Action:Publish /SourceFile:db.dacpac /TargetServerName:localhost,1401 /TargetDatabaseName:AppDB</code>.
