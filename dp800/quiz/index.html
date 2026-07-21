@@ -1,0 +1,156 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>DP-800 Practice Quiz</title>
+<meta name="description" content="70 practice questions for the DP-800 database-solutions study notes, with explanations linked back to the source lesson.">
+<link rel="stylesheet" href="styles.css">
+</head>
+<body data-screen="start">
+
+<div class="app">
+
+  <header class="app-header">
+    <div class="brand">
+      <span class="brand-mark" aria-hidden="true">DP</span>
+      <span class="brand-name">DP-800 Practice Quiz</span>
+    </div>
+  </header>
+
+  <main class="app-main">
+
+    <!-- START SCREEN -->
+    <section class="screen screen-start" id="screen-start">
+      <div class="card card-start">
+        <h1>Test your DP-800 knowledge</h1>
+        <p class="lede">
+          70 questions drawn straight from the <code>dp800/</code> study notes &mdash;
+          20 easy, 20 medium, 20 hard, and 10 applied use cases. Every answer links
+          back to the exact lesson it came from.
+        </p>
+
+        <div class="mode-grid" id="mode-grid" role="radiogroup" aria-label="Choose a question set">
+          <button class="mode-card" data-mode="all">
+            <span class="mode-title">All questions</span>
+            <span class="mode-count">70</span>
+          </button>
+          <button class="mode-card" data-mode="easy">
+            <span class="mode-title tier-easy">Easy</span>
+            <span class="mode-count">20</span>
+          </button>
+          <button class="mode-card" data-mode="medium">
+            <span class="mode-title tier-medium">Medium</span>
+            <span class="mode-count">20</span>
+          </button>
+          <button class="mode-card" data-mode="hard">
+            <span class="mode-title tier-hard">Hard</span>
+            <span class="mode-count">20</span>
+          </button>
+          <button class="mode-card" data-mode="usecase">
+            <span class="mode-title tier-usecase">Use cases</span>
+            <span class="mode-count">10</span>
+          </button>
+          <button class="mode-card" data-mode="custom">
+            <span class="mode-title">Custom mix</span>
+            <span class="mode-count">&hellip;</span>
+          </button>
+        </div>
+
+        <div class="custom-panel" id="custom-panel" hidden>
+          <p class="custom-panel-label">Include tiers:</p>
+          <label class="checkbox"><input type="checkbox" value="easy" checked> Easy</label>
+          <label class="checkbox"><input type="checkbox" value="medium" checked> Medium</label>
+          <label class="checkbox"><input type="checkbox" value="hard" checked> Hard</label>
+          <label class="checkbox"><input type="checkbox" value="usecase" checked> Use cases</label>
+        </div>
+
+        <div class="options-row">
+          <label class="switch">
+            <input type="checkbox" id="shuffle-questions" checked>
+            <span>Shuffle questions</span>
+          </label>
+          <label class="switch">
+            <input type="checkbox" id="shuffle-answers" checked>
+            <span>Shuffle answer order</span>
+          </label>
+        </div>
+
+        <button class="btn btn-primary btn-start" id="start-btn">Start quiz</button>
+        <p class="last-score" id="last-score" hidden></p>
+      </div>
+    </section>
+
+    <!-- QUIZ SCREEN -->
+    <section class="screen screen-quiz" id="screen-quiz">
+      <div class="quiz-topbar">
+        <button class="btn-exit" id="exit-btn" title="Exit to menu" aria-label="Exit to menu">&larr; Menu</button>
+        <div class="progress-track" aria-hidden="true">
+          <div class="progress-fill" id="progress-fill"></div>
+        </div>
+        <span class="progress-label" id="progress-label">Question 1 of 70</span>
+      </div>
+
+      <div class="card card-quiz">
+        <div class="question-meta">
+          <span class="tier-badge" id="question-tier-badge">Easy</span>
+          <span class="question-breadcrumb" id="question-breadcrumb">Domain &rsaquo; Module</span>
+        </div>
+
+        <h2 class="question-text" id="question-text">Question text goes here</h2>
+
+        <div class="options-list" id="options-list" role="radiogroup" aria-label="Answer options"></div>
+
+        <div class="explanation-panel" id="explanation-panel" hidden>
+          <p class="explanation-verdict" id="explanation-verdict"></p>
+          <p class="explanation-text" id="explanation-text"></p>
+          <blockquote class="explanation-quote" id="explanation-quote" hidden></blockquote>
+          <p class="explanation-source">
+            Source: <a id="explanation-source-link" href="#" target="_blank" rel="noopener"></a>
+            <span class="explanation-heading" id="explanation-heading-label"></span>
+          </p>
+        </div>
+
+        <div class="quiz-actions">
+          <button class="btn btn-primary" id="next-btn" hidden>Next question</button>
+        </div>
+      </div>
+    </section>
+
+    <!-- RESULTS SCREEN -->
+    <section class="screen screen-results" id="screen-results">
+      <div class="card card-results">
+        <h1>Results</h1>
+        <p class="score-line" id="score-line">0 / 0</p>
+        <p class="score-pct" id="score-pct"></p>
+
+        <div class="tier-breakdown" id="tier-breakdown"></div>
+
+        <div class="missed-section" id="missed-section">
+          <h2>Review these</h2>
+          <div class="missed-list" id="missed-list"></div>
+        </div>
+
+        <div class="results-actions">
+          <button class="btn btn-secondary" id="retry-missed-btn">Retry missed only</button>
+          <button class="btn btn-secondary" id="retry-same-btn">Retry same set</button>
+          <button class="btn btn-primary" id="back-to-menu-btn">Back to menu</button>
+        </div>
+      </div>
+    </section>
+
+  </main>
+
+  <footer class="app-footer">
+    <p>
+      Built from <a href="https://github.com/lorenzouriel/dba-lab/tree/main/dp800" target="_blank" rel="noopener">dp800/ study notes</a>
+      &middot; <a href="https://github.com/lorenzouriel/dba-lab" target="_blank" rel="noopener">dba-lab on GitHub</a>
+    </p>
+  </footer>
+
+</div>
+
+<script src="questions.js"></script>
+<script src="app.js"></script>
+</body>
+</html>

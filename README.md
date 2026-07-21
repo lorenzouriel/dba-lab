@@ -44,9 +44,22 @@ files where Microsoft provides them). Current domains:
 
 - `Design and develop database solutions/`
 - `Implement AI capabilities in database solutions/`
-- `Secure, optimize, and deploy database solutions/` *(not yet populated)*
+- `Secure, optimize, and deploy database solutions/`
 
-Use the `/dp800-quiz` skill (see below) to drill yourself on this content.
+Use the `/dp800-quiz` skill (see below) to drill yourself on this content, or the
+static [`dp800/quiz/`](dp800/quiz/) web app below for a shareable, browser-based
+version.
+
+### [`dp800/quiz/`](dp800/quiz/)
+
+A static, single-page practice quiz built from the `dp800/` notes: 70 one-correct-answer
+questions (20 easy, 20 medium, 20 hard, 10 applied use cases), each with an
+explanation that links back to the exact lesson file it came from. Plain
+HTML/CSS/JS, no build step — open `dp800/quiz/index.html` directly in a browser, or
+visit the deployed version at **https://lorenzouriel.github.io/dba-lab/** (published
+by [`.github/workflows/deploy-quiz.yml`](.github/workflows/deploy-quiz.yml) on every
+push to `main` that touches `dp800/quiz/`; requires the one-time repo setting
+**Settings → Pages → Source: GitHub Actions**).
 
 ### [`.claude/`](.claude/)
 
