@@ -1,0 +1,792 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Octopus Lab — Setup Guide</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Fira+Code:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --font-body: 'DM Sans', system-ui, sans-serif;
+    --font-mono: 'Fira Code', 'SF Mono', Consolas, monospace;
+    --bg: #f7f5f2;
+    --surface: #ffffff;
+    --surface2: #f0ece7;
+    --surface-elevated: #fffcf8;
+    --border: rgba(0,0,0,0.07);
+    --border-bright: rgba(0,0,0,0.14);
+    --text: #1e1a15;
+    --text-dim: #7a7167;
+    --accent: #0369a1;
+    --accent-dim: rgba(3,105,161,0.07);
+    --green: #166534;
+    --green-dim: rgba(22,101,52,0.08);
+    --amber: #b45309;
+    --amber-dim: rgba(180,83,9,0.07);
+    --red: #991b1b;
+    --red-dim: rgba(153,27,27,0.06);
+    --teal: #0f766e;
+    --teal-dim: rgba(15,118,110,0.07);
+    --slate: #475569;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root {
+      --bg: #12110f;
+      --surface: #1c1a17;
+      --surface2: #252220;
+      --surface-elevated: #2a2724;
+      --border: rgba(255,255,255,0.06);
+      --border-bright: rgba(255,255,255,0.12);
+      --text: #e8e2da;
+      --text-dim: #9a9084;
+      --accent: #38bdf8;
+      --accent-dim: rgba(56,189,248,0.1);
+      --green: #4ade80;
+      --green-dim: rgba(74,222,128,0.1);
+      --amber: #fbbf24;
+      --amber-dim: rgba(251,191,36,0.1);
+      --red: #f87171;
+      --red-dim: rgba(248,113,113,0.08);
+      --teal: #5eead4;
+      --teal-dim: rgba(94,234,212,0.08);
+      --slate: #94a3b8;
+    }
+  }
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    font-family: var(--font-body);
+    background: var(--bg);
+    background-image: radial-gradient(circle, var(--border) 1px, transparent 1px);
+    background-size: 28px 28px;
+    color: var(--text);
+    line-height: 1.6;
+    -webkit-font-smoothing: antialiased;
+  }
+  .wrap {
+    max-width: 1360px;
+    margin: 0 auto;
+    display: grid;
+    grid-template-columns: 180px 1fr;
+    gap: 0 40px;
+    padding: 32px 24px 80px;
+  }
+  .main { min-width: 0; }
+  .toc {
+    position: sticky;
+    top: 24px;
+    align-self: start;
+    padding: 14px 0;
+    grid-row: 1 / -1;
+    max-height: calc(100dvh - 48px);
+    overflow-y: auto;
+  }
+  .toc::-webkit-scrollbar { width: 3px; }
+  .toc::-webkit-scrollbar-thumb { background: var(--surface-elevated); border-radius: 2px; }
+  .toc-title {
+    font-family: var(--font-mono);
+    font-size: 9px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 2px;
+    color: var(--text-dim);
+    padding: 0 0 10px;
+    margin-bottom: 8px;
+    border-bottom: 1px solid var(--border);
+  }
+  .toc a {
+    display: block;
+    font-size: 11px;
+    color: var(--text-dim);
+    text-decoration: none;
+    padding: 5px 8px;
+    border-radius: 5px;
+    border-left: 2px solid transparent;
+    transition: all .15s;
+    line-height: 1.4;
+    margin-bottom: 1px;
+  }
+  .toc a:hover { color: var(--text); background: var(--surface2); }
+  .toc a.active { color: var(--text); border-left-color: var(--accent); }
+  .hero {
+    background: color-mix(in srgb, var(--surface) 92%, var(--amber) 8%);
+    border: 1px solid color-mix(in srgb, var(--border) 50%, var(--amber) 50%);
+    border-radius: 14px;
+    padding: 48px 40px;
+    margin-bottom: 40px;
+    position: relative;
+    overflow: hidden;
+  }
+  .hero::before {
+    content: '';
+    position: absolute;
+    top: -40%;
+    right: -10%;
+    width: 60%;
+    height: 180%;
+    background: radial-gradient(ellipse, var(--amber-dim) 0%, transparent 70%);
+    pointer-events: none;
+  }
+  .hero h1 { font-size: 36px; font-weight: 700; line-height: 1.15; margin-bottom: 10px; position: relative; }
+  .hero p { font-size: 16px; color: var(--text-dim); max-width: 640px; position: relative; }
+  .hero-badges { display: flex; gap: 8px; margin-top: 18px; flex-wrap: wrap; position: relative; }
+  .badge { font-family: var(--font-mono); font-size: 11px; font-weight: 500; padding: 4px 10px; border-radius: 6px; border: 1px solid var(--border); background: var(--surface); }
+  .badge--accent { border-color: var(--accent); color: var(--accent); background: var(--accent-dim); }
+  .badge--green { border-color: var(--green); color: var(--green); background: var(--green-dim); }
+  .badge--amber { border-color: var(--amber); color: var(--amber); background: var(--amber-dim); }
+  .sec-head {
+    font-family: var(--font-mono);
+    font-size: 11px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 1.5px;
+    padding: 10px 0;
+    margin: 48px 0 20px;
+    border-bottom: 1px solid var(--border);
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    scroll-margin-top: 20px;
+  }
+  .sec-head .dot { width: 8px; height: 8px; border-radius: 50%; flex-shrink: 0; }
+  .dot--accent { background: var(--accent); }
+  .dot--green { background: var(--green); }
+  .dot--amber { background: var(--amber); }
+  .dot--teal { background: var(--teal); }
+  .dot--red { background: var(--red); }
+  .step {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 24px 28px;
+    margin-bottom: 16px;
+    position: relative;
+    animation: fadeUp .4s ease both;
+    animation-delay: calc(var(--i, 0) * 60ms);
+  }
+  .step--elevated { background: var(--surface-elevated); box-shadow: 0 2px 8px rgba(0,0,0,0.06); }
+  .step-num {
+    position: absolute; top: -10px; left: 20px;
+    font-family: var(--font-mono); font-size: 11px; font-weight: 600;
+    background: var(--amber); color: #fff;
+    width: 24px; height: 24px; border-radius: 6px;
+    display: flex; align-items: center; justify-content: center;
+  }
+  .step-num--green { background: var(--green); }
+  .step-num--accent { background: var(--accent); }
+  .step-num--teal { background: var(--teal); }
+  .step h3 { font-size: 17px; font-weight: 600; margin-bottom: 8px; }
+  .step p, .step li { font-size: 14px; color: var(--text-dim); line-height: 1.65; }
+  .step ul, .step ol { padding-left: 18px; margin-top: 6px; }
+  .step li { margin-bottom: 4px; }
+  pre {
+    font-family: var(--font-mono); font-size: 13px; line-height: 1.6;
+    background: var(--surface2); border: 1px solid var(--border); border-radius: 8px;
+    padding: 16px 20px; overflow-x: auto; white-space: pre-wrap; word-wrap: break-word; margin: 12px 0;
+  }
+  code { font-family: var(--font-mono); font-size: 12px; background: var(--surface2); padding: 2px 6px; border-radius: 4px; }
+  pre code { background: none; padding: 0; font-size: 13px; }
+  .cmd-label {
+    font-family: var(--font-mono); font-size: 9px; font-weight: 600;
+    text-transform: uppercase; letter-spacing: 1.5px; color: var(--text-dim); margin-bottom: 6px; display: block;
+  }
+  .pipeline { display: flex; align-items: center; gap: 0; margin: 16px 0; flex-wrap: wrap; }
+  .pipe-step { background: var(--surface); border: 1px solid var(--border); border-radius: 8px; padding: 10px 18px; font-family: var(--font-mono); font-size: 12px; font-weight: 500; text-align: center; flex-shrink: 0; }
+  .pipe-arrow { color: var(--text-dim); font-size: 16px; padding: 0 6px; flex-shrink: 0; }
+  .tbl-wrap { overflow-x: auto; margin: 12px 0; border-radius: 10px; border: 1px solid var(--border); }
+  table { width: 100%; border-collapse: collapse; font-size: 13px; }
+  th { font-family: var(--font-mono); font-size: 10px; font-weight: 600; text-transform: uppercase; letter-spacing: 1px; color: var(--text-dim); background: var(--surface2); padding: 10px 16px; text-align: left; border-bottom: 1px solid var(--border); }
+  td { padding: 10px 16px; border-bottom: 1px solid var(--border); vertical-align: top; }
+  tr:last-child td { border-bottom: none; }
+  tr:nth-child(even) td { background: color-mix(in srgb, var(--surface2) 40%, var(--surface) 60%); }
+  .callout { border-left: 3px solid var(--amber); background: var(--amber-dim); padding: 14px 18px; border-radius: 0 8px 8px 0; margin: 14px 0; font-size: 13px; color: var(--text); }
+  .callout--info { border-left-color: var(--accent); background: var(--accent-dim); }
+  .callout--success { border-left-color: var(--green); background: var(--green-dim); }
+  .callout strong { font-weight: 600; }
+  .file-tree { font-family: var(--font-mono); font-size: 12px; line-height: 1.9; padding: 20px 24px; background: var(--surface2); border-radius: 8px; border: 1px solid var(--border); margin: 12px 0; }
+  .file-tree .dim { color: var(--text-dim); }
+  .file-tree .hl { color: var(--accent); font-weight: 500; }
+  @keyframes fadeUp { from { opacity: 0; transform: translateY(12px); } to { opacity: 1; transform: translateY(0); } }
+  @keyframes fadeScale { from { opacity: 0; transform: scale(0.95); } to { opacity: 1; transform: scale(1); } }
+  @media (prefers-reduced-motion: reduce) { .step, .hero { animation: none !important; } }
+  @media (max-width: 860px) {
+    .wrap { grid-template-columns: 1fr; padding: 16px; }
+    .toc { position: sticky; top: 0; z-index: 10; background: var(--bg); display: flex; gap: 4px; overflow-x: auto; padding: 10px 0; border-bottom: 1px solid var(--border); margin-bottom: 20px; }
+    .toc-title { display: none; }
+    .toc a { flex-shrink: 0; white-space: nowrap; padding: 6px 12px; border-left: none; border-bottom: 2px solid transparent; }
+    .toc a.active { border-bottom-color: var(--accent); border-left-color: transparent; }
+    .hero { padding: 28px 20px; }
+    .hero h1 { font-size: 26px; }
+    .pipeline { flex-direction: column; align-items: stretch; }
+    .pipe-arrow { transform: rotate(90deg); text-align: center; }
+  }
+</style>
+</head>
+<body>
+<div class="wrap">
+
+<nav class="toc" id="toc">
+  <div class="toc-title">Octopus Lab</div>
+  <a href="#s0">0. Prerequisites</a>
+  <a href="#s1">1. Start Octopus</a>
+  <a href="#s2">2. First-Time Setup</a>
+  <a href="#s3">3. Configure API</a>
+  <a href="#s4">4. Build dacpac</a>
+  <a href="#s5">5. Package &amp; Push</a>
+  <a href="#s6">6. Deployment Process</a>
+  <a href="#s7">7. Create Release</a>
+  <a href="#s8">8. Promote &amp; Verify</a>
+  <a href="#ref">Reference</a>
+</nav>
+
+<div class="main">
+
+<!-- HERO -->
+<div class="hero" style="animation: fadeScale .5s ease both">
+  <h1>Octopus Lab Setup Guide</h1>
+  <p>Deploy SSDT dacpac artifacts through Octopus Deploy with environment promotion gates. Build once, deploy everywhere: Dev &rarr; Staging &rarr; Production.</p>
+  <div class="hero-badges">
+    <span class="badge badge--amber">Octopus Deploy</span>
+    <span class="badge badge--accent">SSDT</span>
+    <span class="badge">dacpac</span>
+    <span class="badge badge--green">sqlpackage</span>
+    <span class="badge">NuGet</span>
+    <span class="badge">Docker</span>
+  </div>
+</div>
+
+<!-- ARCHITECTURE -->
+<div class="step step--elevated" style="animation: fadeUp .4s ease .1s both">
+  <h3>End-to-End Pipeline</h3>
+  <div class="pipeline">
+    <div class="pipe-step" style="border-color:var(--accent)"><strong>VS Build</strong><br><small>.sqlproj &rarr; .dacpac</small></div>
+    <span class="pipe-arrow">&rarr;</span>
+    <div class="pipe-step" style="border-color:var(--amber)"><strong>octo pack</strong><br><small>.dacpac &rarr; .nupkg</small></div>
+    <span class="pipe-arrow">&rarr;</span>
+    <div class="pipe-step" style="border-color:var(--amber)"><strong>octo push</strong><br><small>to built-in feed</small></div>
+    <span class="pipe-arrow">&rarr;</span>
+    <div class="pipe-step" style="border-color:var(--green)"><strong>Octopus</strong><br><small>Release &rarr; Deploy</small></div>
+  </div>
+  <div class="pipeline" style="margin-top:8px">
+    <div class="pipe-step" style="border-color:var(--accent)"><strong>Dev</strong><br><small>:1401</small></div>
+    <span class="pipe-arrow">&rarr;</span>
+    <div class="pipe-step" style="border-color:var(--amber)"><strong>Staging</strong><br><small>:1402</small></div>
+    <span class="pipe-arrow">&rarr;</span>
+    <div class="pipe-step" style="border-color:var(--green)"><strong>Production</strong><br><small>:1403</small></div>
+    <span class="pipe-arrow">&rarr;</span>
+    <div class="pipe-step" style="border-color:var(--teal); border-style:dashed"><strong>AG Replica</strong><br><small>:1404 (auto)</small></div>
+  </div>
+</div>
+
+
+<!-- STEP 0: PREREQUISITES -->
+<div id="s0" class="sec-head"><span class="dot dot--accent"></span>0 &mdash; Prerequisites</div>
+
+<div class="step" style="--i:0">
+  <h3>What You Need</h3>
+  <div class="tbl-wrap">
+    <table>
+      <thead><tr><th>Tool</th><th>Why</th><th>Get It</th></tr></thead>
+      <tbody>
+        <tr><td><strong>dba-lab running</strong></td><td>SQL Server instances must be up with databases initialized</td><td><code>..\ag-&amp;-cicd-lab\dba-lab.ps1 up</code> + <code>init</code></td></tr>
+        <tr><td><strong>Visual Studio + SSDT</strong></td><td>Build <code>.sqlproj</code> into <code>.dacpac</code></td><td>VS 2019/2022 with Data Storage workload</td></tr>
+        <tr><td><strong>sqlpackage</strong></td><td>Publish dacpac to SQL Server</td><td><code>dotnet tool install -g microsoft.sqlpackage</code></td></tr>
+        <tr><td><strong>OctopusTools</strong></td><td><code>octo pack/push</code> CLI commands</td><td><code>dotnet tool install -g OctopusTools</code></td></tr>
+        <tr><td><strong>Docker Desktop</strong></td><td>Runs Octopus Server + DB containers</td><td><code>winget install Docker.DockerDesktop</code></td></tr>
+      </tbody>
+    </table>
+  </div>
+  <div class="callout callout--info">
+    <strong>Octopus license:</strong> Free Community Edition for up to 10 deployment targets. Get a trial at <code>octopus.com</code>.
+  </div>
+</div>
+
+
+<!-- STEP 1: START OCTOPUS -->
+<div id="s1" class="sec-head"><span class="dot dot--amber"></span>1 &mdash; Start Octopus Deploy</div>
+
+<div class="step step--elevated" style="--i:1">
+  <span class="step-num">1</span>
+  <h3>Configure Environment</h3>
+  <span class="cmd-label">PowerShell</span>
+  <pre><code>cd octopus-lab
+Copy-Item .env.example .env</code></pre>
+  <p>Edit <code>.env</code> and set:</p>
+  <pre><code># Required
+SA_PASSWORD=YourStrong!Pass2024
+ACCEPT_OCTOPUS_EULA=Y
+ADMIN_USERNAME=admin
+ADMIN_PASSWORD=OctoAdmin!2024
+ADMIN_EMAIL=admin@localhost
+
+# Paste your license key (base64)
+OCTOPUS_SERVER_BASE64_LICENSE=...</code></pre>
+</div>
+
+<div class="step" style="--i:2">
+  <span class="step-num">2</span>
+  <h3>Start Containers</h3>
+  <span class="cmd-label">PowerShell</span>
+  <pre><code># Make sure dba-lab is running first
+..\ag-&amp;-cicd-lab\dba-lab.ps1 up
+
+# Start Octopus
+.\octopus-lab.ps1 up</code></pre>
+  <p>Octopus takes ~2 minutes to initialize. Two containers start:</p>
+  <div class="tbl-wrap">
+    <table>
+      <thead><tr><th>Container</th><th>Port</th><th>Purpose</th></tr></thead>
+      <tbody>
+        <tr><td><code>octopus-db</code></td><td>1400</td><td>SQL Server Express for Octopus internal data</td></tr>
+        <tr><td><code>octopus-server</code></td><td>8080</td><td>Octopus Deploy web UI + API</td></tr>
+      </tbody>
+    </table>
+  </div>
+  <div class="callout">
+    <strong>Networking:</strong> Octopus containers join the <code>dba-lab_dba-lab</code> Docker network, so they can reach <code>sql-dev</code>, <code>sql-staging</code>, <code>sql-prod-1</code> by hostname on port 1433.
+  </div>
+</div>
+
+
+<!-- STEP 2: FIRST-TIME SETUP -->
+<div id="s2" class="sec-head"><span class="dot dot--amber"></span>2 &mdash; First-Time Octopus Setup</div>
+
+<div class="step step--elevated" style="--i:3">
+  <span class="step-num">3</span>
+  <h3>Login and Create API Key</h3>
+  <ol>
+    <li>Open <code>http://localhost:8080</code></li>
+    <li>Login with <code>ADMIN_USERNAME</code> / <code>ADMIN_PASSWORD</code> from <code>.env</code></li>
+    <li>Go to <strong>Profile &rarr; API Keys &rarr; New API Key</strong></li>
+    <li>Copy the API key</li>
+    <li>Add to <code>.env</code> as <code>OCTOPUS_API_KEY=API-XXXXXXXXXX</code></li>
+  </ol>
+  <div class="callout callout--info">
+    <strong>API key format:</strong> Starts with <code>API-</code> followed by alphanumeric characters. This key authenticates all CLI and REST API calls.
+  </div>
+  <div class="callout">
+    <strong>Button grayed out?</strong> If the &ldquo;New API Key&rdquo; button is disabled in the UI, create the key via REST API instead:
+  </div>
+  <span class="cmd-label">Bash / Git Bash</span>
+  <pre><code># 1. Login and save cookies
+curl -s -c /tmp/octo-cookies -X POST \
+  "http://localhost:8080/api/users/login" \
+  -H "Content-Type: application/json" \
+  -d '{"Username":"admin","Password":"YOUR_PASSWORD"}'
+
+# 2. Extract CSRF token from cookies
+CSRF=$(cat /tmp/octo-cookies | grep "Octopus-Csrf-Token" | awk '{print $NF}')
+
+# 3. Create API key
+curl -s -b /tmp/octo-cookies -X POST \
+  "http://localhost:8080/api/users/Users-1/apikeys" \
+  -H "Content-Type: application/json" \
+  -H "X-Octopus-Csrf-Token: $CSRF" \
+  -d '{"Purpose":"dba-lab automation"}'</code></pre>
+  <p>The response contains <code>"ApiKey": "API-XXXX..."</code> &mdash; copy that value to your <code>.env</code>.</p>
+</div>
+
+
+<!-- STEP 3: CONFIGURE VIA API -->
+<div id="s3" class="sec-head"><span class="dot dot--amber"></span>3 &mdash; Configure Octopus via API</div>
+
+<div class="step step--elevated" style="--i:4">
+  <span class="step-num">4</span>
+  <h3>Run the Setup Script</h3>
+  <span class="cmd-label">PowerShell</span>
+  <pre><code>.\octopus-lab.ps1 setup</code></pre>
+  <p>This creates via the Octopus REST API:</p>
+  <ul>
+    <li><strong>Environments:</strong> Dev, Staging, Production</li>
+    <li><strong>Lifecycle:</strong> Dev &rarr; Staging &rarr; Production (manual promotion gates)</li>
+    <li><strong>Project Group:</strong> Database Deployments</li>
+    <li><strong>Project:</strong> Database Deployment</li>
+    <li><strong>Variables:</strong> Per-environment connection details</li>
+  </ul>
+</div>
+
+<div class="step" style="--i:5">
+  <h3>Variable Scoping</h3>
+  <p>Each variable resolves differently per environment:</p>
+  <div class="tbl-wrap">
+    <table>
+      <thead><tr><th>Variable</th><th>Dev</th><th>Staging</th><th>Production</th></tr></thead>
+      <tbody>
+        <tr><td><code>SqlServer.Host</code></td><td>sql-dev</td><td>sql-staging</td><td>sql-prod-1</td></tr>
+        <tr><td><code>SqlServer.Port</code></td><td colspan="3">1433 (all environments)</td></tr>
+        <tr><td><code>SqlServer.Password</code></td><td colspan="3"><em>sensitive</em> &mdash; SA password</td></tr>
+        <tr><td><code>Database.Name</code></td><td colspan="3">AppDB (all environments)</td></tr>
+        <tr><td><code>Deploy.BlockOnPossibleDataLoss</code></td><td colspan="3">True (all environments)</td></tr>
+      </tbody>
+    </table>
+  </div>
+</div>
+
+
+<!-- STEP 4: BUILD DACPAC -->
+<div id="s4" class="sec-head"><span class="dot dot--accent"></span>4 &mdash; Build dacpac from SSDT</div>
+
+<div class="step step--elevated" style="--i:6">
+  <span class="step-num step-num--accent">5</span>
+  <h3>Build the SSDT Projects</h3>
+  <span class="cmd-label">PowerShell (via CLI)</span>
+  <pre><code>.\octopus-lab.ps1 build</code></pre>
+  <span class="cmd-label">Or from Visual Studio</span>
+  <pre><code>Open db\db.sln &rarr; Right-click Solution &rarr; Build Solution (Ctrl+Shift+B)</code></pre>
+  <p>Produces the dacpac file:</p>
+  <div class="tbl-wrap">
+    <table>
+      <thead><tr><th>Project</th><th>Output</th><th>Target Database</th></tr></thead>
+      <tbody>
+        <tr><td>db</td><td><code>db\bin\Release\db.dacpac</code></td><td>AppDB</td></tr>
+      </tbody>
+    </table>
+  </div>
+  <div class="callout callout--info">
+    <strong>Compile-time validation.</strong> The build catches broken references, missing columns, invalid syntax, and FK violations before anything touches a database. This is the main advantage over raw SQL scripts.
+  </div>
+</div>
+
+
+<!-- STEP 5: PACKAGE & PUSH -->
+<div id="s5" class="sec-head"><span class="dot dot--amber"></span>5 &mdash; Package &amp; Push to Octopus</div>
+
+<div class="step step--elevated" style="--i:7">
+  <span class="step-num">6</span>
+  <h3>Package dacpac into NuGet</h3>
+  <span class="cmd-label">PowerShell</span>
+  <pre><code>.\octopus-lab.ps1 pack</code></pre>
+  <p>Creates versioned <code>.nupkg</code> files in <code>artifacts/</code>:</p>
+  <pre><code>artifacts/
+  DbaLab.AppDB.2026.06.18.1200.nupkg</code></pre>
+  <div class="callout callout--info">
+    <strong>Version format:</strong> <code>yyyy.MM.dd.HHmm</code> by default. Override with <code>octo pack --version=1.0.0</code> for semantic versioning.
+  </div>
+</div>
+
+<div class="step" style="--i:8">
+  <span class="step-num">7</span>
+  <h3>Push to Octopus Built-in Feed</h3>
+  <span class="cmd-label">PowerShell</span>
+  <pre><code>.\octopus-lab.ps1 push</code></pre>
+  <p>Pushes all <code>.nupkg</code> files from <code>artifacts/</code> to the Octopus built-in package feed. Packages are now available for releases.</p>
+</div>
+
+<div class="step" style="--i:9">
+  <h3>Manual Alternative</h3>
+  <p>If you prefer to package and push manually:</p>
+  <span class="cmd-label">PowerShell</span>
+  <pre><code># Package
+octo pack `
+    --id="DbaLab.AppDB" `
+    --version="1.0.0" `
+    --basePath="db\bin\Release" `
+    --include="db.dacpac" `
+    --format="nupkg" `
+    --outFolder="artifacts"
+
+# Push
+octo push `
+    --server="http://localhost:8080" `
+    --apiKey=$env:OCTOPUS_API_KEY `
+    --package="artifacts\DbaLab.AppDB.1.0.0.nupkg"</code></pre>
+</div>
+
+
+<!-- STEP 6: DEPLOYMENT PROCESS -->
+<div id="s6" class="sec-head"><span class="dot dot--green"></span>6 &mdash; Deployment Process</div>
+
+<div class="step step--elevated" style="--i:10">
+  <h3>Configure Deployment Steps</h3>
+  <p>In Octopus UI &rarr; <strong>Database Deployment</strong> project &rarr; <strong>Process</strong>, add these steps:</p>
+  <div class="tbl-wrap">
+    <table>
+      <thead><tr><th>#</th><th>Step Name</th><th>Template</th><th>What It Does</th></tr></thead>
+      <tbody>
+        <tr><td>1</td><td><strong>Script AppDB Changes</strong></td><td>Run a Script</td><td><code>sqlpackage /Action:Script</code> &mdash; generates diff, attaches as artifact for DBA review</td></tr>
+        <tr><td>2</td><td><strong>Publish AppDB</strong></td><td>Run a Script</td><td><code>sqlpackage /Action:Publish</code> &mdash; applies dacpac delta</td></tr>
+        <tr><td>4</td><td><strong>Run Post-Deploy</strong></td><td>Run a Script</td><td>Executes idempotent migration scripts (seed data)</td></tr>
+        <tr><td>5</td><td><strong>Verify Schema</strong></td><td>Run a Script</td><td>Queries sys.tables/procedures/views, logs counts</td></tr>
+      </tbody>
+    </table>
+  </div>
+</div>
+
+<div class="step" style="--i:11">
+  <h3>Step 1: Script AppDB Changes (Diff Preview)</h3>
+  <p>Package reference: <code>DbaLab.AppDB</code></p>
+  <span class="cmd-label">PowerShell Script Body</span>
+  <pre><code>$dacpac = "$($OctopusParameters['Octopus.Action.Package[DbaLab.AppDB].ExtractedPath'])\db.dacpac"
+$server = $OctopusParameters['SqlServer.Host']
+$port   = $OctopusParameters['SqlServer.Port']
+$db     = $OctopusParameters['Database.Name']
+$pass   = $OctopusParameters['SqlServer.Password']
+$script = "$env:TEMP\AppDB_diff_$(Get-Date -Format 'yyyyMMdd_HHmmss').sql"
+
+sqlpackage /Action:Script `
+    /SourceFile:$dacpac `
+    /TargetServerName:"$server,$port" `
+    /TargetDatabaseName:$db `
+    /TargetUser:sa `
+    /TargetPassword:$pass `
+    /TargetTrustServerCertificate:True `
+    /OutputPath:$script `
+    /p:BlockOnPossibleDataLoss=$($OctopusParameters['Deploy.BlockOnPossibleDataLoss'])
+
+Write-Host "--- Generated diff script ---"
+Get-Content $script | Select-Object -First 50
+Write-Host "..."
+
+New-OctopusArtifact -Path $script -Name "AppDB_diff.sql"</code></pre>
+  <div class="callout callout--success">
+    <strong>DBA review gate.</strong> The diff script is attached as an Octopus deployment artifact. Before promoting to Production, a DBA can download and review exactly what will change.
+  </div>
+</div>
+
+<div class="step" style="--i:12">
+  <h3>Step 2: Publish AppDB</h3>
+  <p>Same package reference. This step applies the changes.</p>
+  <span class="cmd-label">PowerShell Script Body</span>
+  <pre><code>$dacpac = "$($OctopusParameters['Octopus.Action.Package[DbaLab.AppDB].ExtractedPath'])\db.dacpac"
+$server = $OctopusParameters['SqlServer.Host']
+$port   = $OctopusParameters['SqlServer.Port']
+$db     = $OctopusParameters['Database.Name']
+$pass   = $OctopusParameters['SqlServer.Password']
+
+Write-Host "Publishing $dacpac to $server,$port/$db..."
+
+sqlpackage /Action:Publish `
+    /SourceFile:$dacpac `
+    /TargetServerName:"$server,$port" `
+    /TargetDatabaseName:$db `
+    /TargetUser:sa `
+    /TargetPassword:$pass `
+    /TargetTrustServerCertificate:True `
+    /p:BlockOnPossibleDataLoss=$($OctopusParameters['Deploy.BlockOnPossibleDataLoss'])
+
+if ($LASTEXITCODE -ne 0) { throw "AppDB publish failed!" }
+Write-Host "AppDB published successfully."</code></pre>
+</div>
+
+<div class="step" style="--i:13">
+  <h3>Step 4: Post-Deploy Migrations</h3>
+  <span class="cmd-label">PowerShell Script Body</span>
+  <pre><code>$server = $OctopusParameters['SqlServer.Host']
+$port   = $OctopusParameters['SqlServer.Port']
+$pass   = $OctopusParameters['SqlServer.Password']
+$db     = $OctopusParameters['Database.Name']
+
+sqlcmd -S "$server,$port" -U sa -P $pass -d $db -No -b `
+    -Q "
+SET QUOTED_IDENTIFIER ON;
+IF NOT EXISTS (SELECT 1 FROM [dbo].[users] WHERE [email] = N'demo@localhost')
+BEGIN
+    INSERT INTO [dbo].[users] ([username],[email],[phone_number])
+    VALUES (N'demo', N'demo@localhost', N'000-000-0000');
+    PRINT 'Demo user seeded';
+END ELSE PRINT 'Demo user exists';
+"
+
+if ($LASTEXITCODE -ne 0) { Write-Warning "Post-deploy returned non-zero" }
+else { Write-Host "Post-deploy complete." }</code></pre>
+</div>
+
+<div class="step" style="--i:15">
+  <h3>Step 5: Verify Schema</h3>
+  <span class="cmd-label">PowerShell Script Body</span>
+  <pre><code>$server = $OctopusParameters['SqlServer.Host']
+$port   = $OctopusParameters['SqlServer.Port']
+$pass   = $OctopusParameters['SqlServer.Password']
+$db     = $OctopusParameters['Database.Name']
+
+sqlcmd -S "$server,$port" -U sa -P $pass -d $db -No -b `
+    -Q "
+SELECT 'Tables:    ' + CAST(COUNT(*) AS VARCHAR) FROM sys.tables WHERE is_ms_shipped=0;
+SELECT 'Procedures: ' + CAST(COUNT(*) AS VARCHAR) FROM sys.procedures;
+SELECT 'Views:      ' + CAST(COUNT(*) AS VARCHAR) FROM sys.views WHERE is_ms_shipped=0;
+"</code></pre>
+</div>
+
+
+<!-- STEP 7: CREATE RELEASE -->
+<div id="s7" class="sec-head"><span class="dot dot--green"></span>7 &mdash; Create Release &amp; Deploy</div>
+
+<div class="step step--elevated" style="--i:16">
+  <span class="step-num step-num--green">8</span>
+  <h3>Create a Release</h3>
+  <span class="cmd-label">Octopus UI</span>
+  <p><strong>Database Deployment</strong> project &rarr; <strong>Create Release</strong> &rarr; select package versions &rarr; <strong>Save</strong>.</p>
+  <span class="cmd-label">Or via CLI</span>
+  <pre><code>octo create-release `
+    --server="http://localhost:8080" `
+    --apiKey=$env:OCTOPUS_API_KEY `
+    --project="Database Deployment" `
+    --version="1.0.0" `
+    --packageVersion="1.0.0"</code></pre>
+</div>
+
+<div class="step" style="--i:17">
+  <span class="step-num step-num--green">9</span>
+  <h3>Deploy to Dev</h3>
+  <span class="cmd-label">PowerShell</span>
+  <pre><code>octo deploy-release `
+    --server="http://localhost:8080" `
+    --apiKey=$env:OCTOPUS_API_KEY `
+    --project="Database Deployment" `
+    --version="1.0.0" `
+    --deployTo="Dev" `
+    --waitForDeployment</code></pre>
+  <p>Octopus runs all 5 steps against <code>sql-dev:1433</code>. Check the task log for step output and the diff artifact.</p>
+</div>
+
+
+<!-- STEP 8: PROMOTE -->
+<div id="s8" class="sec-head"><span class="dot dot--teal"></span>8 &mdash; Promote &amp; Verify</div>
+
+<div class="step step--elevated" style="--i:18">
+  <span class="step-num step-num--teal">10</span>
+  <h3>Promote Through Environments</h3>
+  <span class="cmd-label">PowerShell</span>
+  <pre><code># Promote to Staging
+octo deploy-release `
+    --server="http://localhost:8080" `
+    --apiKey=$env:OCTOPUS_API_KEY `
+    --project="Database Deployment" `
+    --version="1.0.0" `
+    --deployTo="Staging" `
+    --waitForDeployment
+
+# Promote to Production (DBA reviews diff artifact first)
+octo deploy-release `
+    --server="http://localhost:8080" `
+    --apiKey=$env:OCTOPUS_API_KEY `
+    --project="Database Deployment" `
+    --version="1.0.0" `
+    --deployTo="Production" `
+    --waitForDeployment</code></pre>
+</div>
+
+<div class="step" style="--i:19">
+  <h3>Lifecycle Gates</h3>
+  <div class="pipeline">
+    <div class="pipe-step" style="border-color:var(--accent)"><strong>Dev</strong><br><small>deploy on release</small></div>
+    <span class="pipe-arrow">&rarr;</span>
+    <div class="pipe-step" style="border-color:var(--amber)"><strong>Staging</strong><br><small>manual promotion</small></div>
+    <span class="pipe-arrow">&rarr;</span>
+    <div class="pipe-step" style="border-color:var(--green)"><strong>Production</strong><br><small>DBA sign-off</small></div>
+    <span class="pipe-arrow">&rarr;</span>
+    <div class="pipe-step" style="border-color:var(--teal); border-style:dashed"><strong>AG Replica</strong><br><small>auto-replicate</small></div>
+  </div>
+  <div class="callout callout--success">
+    <strong>Production deploys to primary only.</strong> AG automatically replicates schema changes (DDL) to sql-prod-2. The diff script artifact from Step 1 provides the DBA review gate &mdash; download it before promoting to Production to see exactly what changes.
+  </div>
+</div>
+
+<div class="step" style="--i:20">
+  <span class="step-num step-num--teal">11</span>
+  <h3>Verify AG Replication</h3>
+  <span class="cmd-label">PowerShell</span>
+  <pre><code># Check secondary has the schema
+..\ag-&amp;-cicd-lab\dba-lab.ps1 validate
+
+# Or query directly (read-only)
+sqlcmd -S localhost,1404 -U sa -P $env:SA_PASSWORD -No -K ReadOnly `
+    -d AppDB -Q "SELECT name FROM sys.tables ORDER BY name;"</code></pre>
+</div>
+
+
+<!-- REFERENCE -->
+<div id="ref" class="sec-head"><span class="dot dot--accent"></span>Quick Reference</div>
+
+<div class="step" style="--i:21">
+  <h3>CLI Commands</h3>
+  <div class="tbl-wrap">
+    <table>
+      <thead><tr><th>Command</th><th>What It Does</th></tr></thead>
+      <tbody>
+        <tr><td><code>.\octopus-lab.ps1 up</code></td><td>Start Octopus (DB + Server)</td></tr>
+        <tr><td><code>.\octopus-lab.ps1 down</code></td><td>Stop Octopus containers</td></tr>
+        <tr><td><code>.\octopus-lab.ps1 clean</code></td><td>Stop + remove Octopus volumes</td></tr>
+        <tr><td><code>.\octopus-lab.ps1 setup</code></td><td>Configure environments, lifecycle, project</td></tr>
+        <tr><td><code>.\octopus-lab.ps1 build</code></td><td>Build dacpac from <code>db\</code> SSDT projects</td></tr>
+        <tr><td><code>.\octopus-lab.ps1 pack</code></td><td>Package dacpac into .nupkg</td></tr>
+        <tr><td><code>.\octopus-lab.ps1 push</code></td><td>Push .nupkg to Octopus built-in feed</td></tr>
+      </tbody>
+    </table>
+  </div>
+</div>
+
+<div class="step" style="--i:22">
+  <h3>Full Sequence (copy-paste)</h3>
+  <pre><code># 1. Start dba-lab
+cd ..
+.\dba-lab.ps1 up
+.\dba-lab.ps1 init
+.\dba-lab.ps1 ag
+
+# 2. Start Octopus
+cd octopus-lab
+Copy-Item .env.example .env     # edit passwords + license
+.\octopus-lab.ps1 up
+
+# 3. Wait ~2 min, then login at http://localhost:8080
+#    Create API key: Profile -> API Keys -> New API Key
+#    Add to .env as OCTOPUS_API_KEY
+
+# 4. Configure Octopus
+.\octopus-lab.ps1 setup
+
+# 5. Build + Package + Push
+.\octopus-lab.ps1 build
+.\octopus-lab.ps1 pack
+.\octopus-lab.ps1 push
+
+# 6. Configure deployment steps in Octopus UI (see Section 6)
+
+# 7. Create release + deploy
+octo create-release --project="Database Deployment" --version="1.0.0" `
+    --server="http://localhost:8080" --apiKey=$env:OCTOPUS_API_KEY
+octo deploy-release --project="Database Deployment" --version="1.0.0" `
+    --deployTo="Dev" --server="http://localhost:8080" --apiKey=$env:OCTOPUS_API_KEY
+
+# 8. Promote: Dev -> Staging -> Production
+#    Review diff artifact before Production promotion</code></pre>
+</div>
+
+<div class="step" style="--i:23">
+  <h3>Project Structure</h3>
+  <div class="file-tree">
+    <span class="hl">octopus-lab/</span><br>
+    &nbsp;&nbsp;octopus-lab.ps1 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="dim">&larr; CLI entry point</span><br>
+    &nbsp;&nbsp;docker-compose.yml &nbsp;&nbsp;&nbsp;&nbsp;<span class="dim">&larr; Octopus Server + DB</span><br>
+    &nbsp;&nbsp;.env.example &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="dim">&larr; configuration template</span><br>
+    &nbsp;&nbsp;setup-guide.html &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="dim">&larr; this guide</span><br>
+    &nbsp;&nbsp;scripts/<br>
+    &nbsp;&nbsp;&nbsp;&nbsp;setup-octopus.ps1 &nbsp;&nbsp;&nbsp;<span class="dim">&larr; Octopus REST API config</span><br>
+    &nbsp;&nbsp;artifacts/ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="dim">&larr; .nupkg output (gitignored)</span><br>
+    &nbsp;&nbsp;db/ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="dim">&larr; SSDT projects</span><br>
+    &nbsp;&nbsp;&nbsp;&nbsp;db.sqlproj &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="dim">&larr; AppDB</span>
+  </div>
+</div>
+
+</div><!-- /main -->
+</div><!-- /wrap -->
+
+<script>
+const tocLinks = document.querySelectorAll('.toc a');
+const sections = document.querySelectorAll('.sec-head');
+const observer = new IntersectionObserver((entries) => {
+  entries.forEach(entry => {
+    if (entry.isIntersecting) {
+      tocLinks.forEach(a => a.classList.remove('active'));
+      const id = entry.target.id;
+      const link = document.querySelector(`.toc a[href="#${id}"]`);
+      if (link) link.classList.add('active');
+    }
+  });
+}, { rootMargin: '-20% 0px -70% 0px' });
+sections.forEach(s => observer.observe(s));
+</script>
+</body>
+</html>

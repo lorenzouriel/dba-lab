@@ -1,8 +1,5 @@
 .env
 
-# Claude Code local settings (may contain secrets)
-.claude/
-
 # MSBuild / Visual Studio
 *.suo
 *.user
@@ -18,4 +15,4 @@
 *.pdb
 
 # Deploy output (generated diff scripts)
-scripts/deploy/output/
+**/scripts/deploy/output/
