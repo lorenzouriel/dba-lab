@@ -76,27 +76,6 @@ body {
   margin: 0 auto;
 }
 
-.bmac-btn {
-  display: inline-flex;
-  align-items: center;
-  gap: 6px;
-  margin-left: auto;
-  padding: 7px 14px;
-  border-radius: 999px;
-  background: #ffdd00;
-  color: #1c2128;
-  font-size: 0.8rem;
-  font-weight: 700;
-  text-decoration: none;
-  white-space: nowrap;
-  transition: opacity 150ms;
-}
-
-.bmac-btn:hover { opacity: 0.85; }
-
-@media (max-width: 560px) {
-  .bmac-btn { padding: 7px 10px; font-size: 0.75rem; }
-}
 
 .brand-mark {
   display: inline-flex;
@@ -581,6 +560,17 @@ body[data-screen="results"] .screen-results { display: flex; justify-content: ce
   padding: 20px;
   color: var(--text-muted);
   font-size: 0.8rem;
+}
+
+.bmac-wrap {
+  display: flex;
+  justify-content: center;
+  margin-bottom: 14px;
+}
+
+.bmac-img {
+  height: 54px;
+  width: auto;
 }
 
 .app-footer a { color: var(--text-muted); }
