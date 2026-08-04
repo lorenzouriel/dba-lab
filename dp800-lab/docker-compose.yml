@@ -1,0 +1,158 @@
+name: sqlserver-lab
+
+services:
+  # ---------------------------------------------------------------- sql1
+  # Primary lab instance. Built from a thin Dockerfile so any CA certs
+  # dropped in ./certs get trusted (needed for local HTTPS AI endpoints).
+  sql1:
+    build:
+      context: .
+      dockerfile: docker/mssql/Dockerfile
+    image: sqlserver-lab/mssql:2025
+    hostname: sql1
+    restart: unless-stopped
+    environment:
+      ACCEPT_EULA: "Y"
+      MSSQL_PID: Developer
+      MSSQL_SA_PASSWORD: ${MSSQL_SA_PASSWORD:?set MSSQL_SA_PASSWORD in .env}
+      MSSQL_AGENT_ENABLED: "true"
+      MSSQL_MEMORY_LIMIT_MB: ${SQL1_MEMORY_LIMIT_MB:-6144}
+      MSSQL_COLLATION: ${MSSQL_COLLATION:-SQL_Latin1_General_CP1_CI_AS}
+      MSSQL_ENABLE_HADR: "1"
+      TZ: ${TZ:-America/Sao_Paulo}
+    ports:
+      - "${SQL1_PORT:-1401}:1433"
+    volumes:
+      - sql1-data:/var/opt/mssql          # data, log, secrets, errorlog
+      - ./restore:/var/opt/mssql/restore:ro   # drop .bak here to import
+      - ./backups:/var/opt/mssql/backups      # BACKUP DATABASE writes here
+      - ./scripts:/scripts:ro
+    mem_limit: ${SQL1_MEM_LIMIT:-8g}
+    healthcheck:
+      test:
+        - CMD-SHELL
+        - /opt/mssql-tools18/bin/sqlcmd -S localhost -U sa -P "$$MSSQL_SA_PASSWORD" -C -b -Q "SELECT 1" || exit 1
+      interval: 10s
+      timeout: 5s
+      retries: 10
+      start_period: 90s
+
+  # ------------------------------------------------------------ bootstrap
+  # One-shot. Enables the instance-level switches DP-800 needs.
+  bootstrap:
+    image: mcr.microsoft.com/mssql/server:2025-latest
+    depends_on:
+      sql1:
+        condition: service_healthy
+    environment:
+      MSSQL_SA_PASSWORD: ${MSSQL_SA_PASSWORD}
+    volumes:
+      - ./scripts:/scripts:ro
+    entrypoint:
+      - /opt/mssql-tools18/bin/sqlcmd
+      - -S
+      - sql1
+      - -U
+      - sa
+      - -P
+      - ${MSSQL_SA_PASSWORD}
+      - -C
+      - -b
+      - -i
+      - /scripts/00-bootstrap.sql
+    restart: "no"
+
+  # ----------------------------------------------------------- seed (opt)
+  # `docker compose --profile seed up seed` — rebuild the lab DB from a .bak.
+  seed:
+    profiles: ["seed"]
+    image: mcr.microsoft.com/mssql/server:2025-latest
+    depends_on:
+      sql1:
+        condition: service_healthy
+    volumes:
+      - ./scripts:/scripts:ro
+    entrypoint:
+      - /opt/mssql-tools18/bin/sqlcmd
+      - -S
+      - sql1
+      - -U
+      - sa
+      - -P
+      - ${MSSQL_SA_PASSWORD}
+      - -C
+      - -b
+      - -v
+      - DBNAME=${SEED_DB:-billing}
+      - -v
+      - BAKFILE=${SEED_BAK:-billing.bak}
+      - -i
+      - /scripts/01-restore.sql
+    restart: "no"
+
+  # ------------------------------------------------------------- sql2 (opt)
+  # `docker compose --profile ha up -d` — AG, replication, cross-instance CI/CD.
+  sql2:
+    profiles: ["ha"]
+    image: mcr.microsoft.com/mssql/server:2025-latest
+    hostname: sql2
+    restart: unless-stopped
+    environment:
+      ACCEPT_EULA: "Y"
+      MSSQL_PID: Developer
+      MSSQL_SA_PASSWORD: ${MSSQL_SA_PASSWORD}
+      MSSQL_AGENT_ENABLED: "true"
+      MSSQL_MEMORY_LIMIT_MB: ${SQL2_MEMORY_LIMIT_MB:-4096}
+      MSSQL_COLLATION: ${MSSQL_COLLATION:-SQL_Latin1_General_CP1_CI_AS}
+      MSSQL_ENABLE_HADR: "1"
+      TZ: ${TZ:-America/Sao_Paulo}
+    ports:
+      - "${SQL2_PORT:-1402}:1433"
+    volumes:
+      - sql2-data:/var/opt/mssql
+      - ./backups:/var/opt/mssql/backups
+    mem_limit: ${SQL2_MEM_LIMIT:-6g}
+    healthcheck:
+      test:
+        - CMD-SHELL
+        - /opt/mssql-tools18/bin/sqlcmd -S localhost -U sa -P "$$MSSQL_SA_PASSWORD" -C -b -Q "SELECT 1" || exit 1
+      interval: 10s
+      timeout: 5s
+      retries: 10
+      start_period: 90s
+
+  # -------------------------------------------------------- ollama (opt)
+  # Local embedding model. `docker compose --profile ai up -d`
+  ollama:
+    profiles: ["ai"]
+    image: ollama/ollama:latest
+    restart: unless-stopped
+    volumes:
+      - ollama-models:/root/.ollama
+    ports:
+      - "${OLLAMA_PORT:-11434}:11434"
+
+  # --------------------------------------------------------- caddy (opt)
+  # TLS terminator in front of Ollama. sp_invoke_external_rest_endpoint
+  # and CREATE EXTERNAL MODEL are HTTPS-only — plain http:// is rejected.
+  caddy:
+    profiles: ["ai"]
+    image: caddy:2-alpine
+    restart: unless-stopped
+    depends_on:
+      - ollama
+    volumes:
+      - ./docker/caddy/Caddyfile:/etc/caddy/Caddyfile:ro
+      - caddy-data:/data
+      - caddy-config:/config
+    networks:
+      default:
+        aliases:
+          - ollama.lab
+
+volumes:
+  sql1-data:
+  sql2-data:
+  ollama-models:
+  caddy-data:
+  caddy-config:

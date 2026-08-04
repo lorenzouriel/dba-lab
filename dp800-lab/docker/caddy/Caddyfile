@@ -1,0 +1,11 @@
+{
+	auto_https disable_redirects
+}
+
+# SQL Server reaches this as https://ollama.lab (network alias on the caddy
+# service). `tls internal` mints a cert from Caddy's local CA; run
+# `make trust-ca` to export that root and rebuild sql1 so it trusts it.
+ollama.lab {
+	tls internal
+	reverse_proxy ollama:11434
+}
