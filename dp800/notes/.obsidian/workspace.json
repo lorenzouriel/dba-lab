@@ -11,10 +11,14 @@
             "id": "458f103413f6731e",
             "type": "leaf",
             "state": {
-              "type": "empty",
-              "state": {},
+              "type": "markdown",
+              "state": {
+                "file": "Implement AI capabilities in database solutions/Design and implement RAG with SQL.md",
+                "mode": "source",
+                "source": false
+              },
               "icon": "lucide-file",
-              "title": "New tab"
+              "title": "Design and implement RAG with SQL"
             }
           }
         ]
@@ -183,10 +187,20 @@
   },
   "active": "458f103413f6731e",
   "lastOpenFiles": [
-    "Write advanced T-SQL code.md",
-    "Implement SQL solutions by using AI-assisted tools.md",
-    "Implement programmability objects with SQL.md",
-    "Design and implement database objects with SQL.md",
+    "Implement AI capabilities in database solutions/Design and implement intelligent search with SQL.md",
+    "Implement AI capabilities in database solutions/Design and implement models and embeddings with SQL.md",
+    "Implement AI capabilities in database solutions/Design and implement RAG with SQL.md",
+    "Implement AI capabilities in database solutions/Untitled",
+    "Secure, optimize, and deploy database solutions/Integrate SQL solutions with Azure services.md",
+    "Secure, optimize, and deploy database solutions/Implement data security and compliance with SQL.md",
+    "Secure, optimize, and deploy database solutions/Implement CICD by using SQL database projects.md",
+    "Implement AI capabilities in database solutions",
+    "Secure, optimize, and deploy database solutions/Optimize database performance.md",
+    "Design and develop database solutions/Design and implement database objects with SQL.md",
+    "Secure, optimize, and deploy database solutions",
+    "Design and develop database solutions/Write advanced T-SQL code.md",
+    "Design and develop database solutions/Implement SQL solutions by using AI-assisted tools.md",
+    "Design and develop database solutions/Implement programmability objects with SQL.md",
     "Design and develop database solutions"
   ]
 }
