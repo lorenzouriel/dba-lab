@@ -1,7 +1,10 @@
 ## Introduction
 - Database object design decisions are **more permanent** than app code — changing rowstore→columnstore, adding temporal, switching IDENTITY→SEQUENCE = migrations that can lock tables for hours
+
 - Module spans four platforms: SQL Server, Azure SQL DB, Azure SQL MI, SQL DB in Fabric
-- Core areas: table design, specialized table types, constraints/validation, advanced features (JSON, indexing, SEQUENCE), partitioning
+
+- Core areas: table design, specialized table types, constraints/validation, advanced features (JSON, indexing, SEQUENCE), partitioning,
+
 - **Exam angle**: expect platform-comparison questions (which platform supports what) and "which object type fits this scenario" questions
 
 ## Understand your SQL platform choices

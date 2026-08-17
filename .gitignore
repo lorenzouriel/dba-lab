@@ -16,3 +16,6 @@
 
 # Deploy output (generated diff scripts)
 **/scripts/deploy/output/
+
+dba-lab/dp800/notes/.obsidian/*
+dp800/notes/.obsidian/workspace.json

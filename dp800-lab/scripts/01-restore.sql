@@ -18,6 +18,7 @@ DECLARE @db     sysname       = N'$(DBNAME)';
 DECLARE @bak    nvarchar(512) = N'/var/opt/mssql/restore/$(BAKFILE)';
 DECLARE @data   nvarchar(512) = N'/var/opt/mssql/data/';
 DECLARE @sql    nvarchar(max);
+DECLARE @qdb    nvarchar(258) = QUOTENAME(@db);
 
 IF OBJECT_ID('tempdb..#filelist') IS NOT NULL DROP TABLE #filelist;
 
@@ -49,7 +50,7 @@ CREATE TABLE #filelist (
 INSERT INTO #filelist
 EXEC ('RESTORE FILELISTONLY FROM DISK = ''' + @bak + '''');
 
-SELECT @sql = N'RESTORE DATABASE ' + QUOTENAME(@db)
+SELECT @sql = N'RESTORE DATABASE ' + @qdb
             + N' FROM DISK = ''' + @bak + N''' WITH REPLACE, RECOVERY, STATS = 5'
             + STRING_AGG(
                   N', MOVE ''' + LogicalName + N''' TO ''' + @data + @db + N'_'
@@ -60,19 +61,19 @@ FROM #filelist;
 
 /*  Kick anyone off before REPLACE.  */
 IF DB_ID(@db) IS NOT NULL
-    EXEC (N'ALTER DATABASE ' + QUOTENAME(@db)
+    EXEC (N'ALTER DATABASE ' + @qdb
         + N' SET SINGLE_USER WITH ROLLBACK IMMEDIATE');
 
 PRINT @sql;
 EXEC (@sql);
 
-EXEC (N'ALTER DATABASE ' + QUOTENAME(@db) + N' SET MULTI_USER');
+EXEC (N'ALTER DATABASE ' + @qdb + N' SET MULTI_USER');
 
 /*  170 = SQL Server 2025. Restoring from an older instance keeps the source
     compat level, which silently disables OPPO and the 2025 CE feedback paths. */
-EXEC (N'ALTER DATABASE ' + QUOTENAME(@db) + N' SET COMPATIBILITY_LEVEL = 170');
-EXEC (N'ALTER DATABASE ' + QUOTENAME(@db) + N' SET QUERY_STORE = ON');
-EXEC (N'ALTER DATABASE ' + QUOTENAME(@db)
+EXEC (N'ALTER DATABASE ' + @qdb + N' SET COMPATIBILITY_LEVEL = 170');
+EXEC (N'ALTER DATABASE ' + @qdb + N' SET QUERY_STORE = ON');
+EXEC (N'ALTER DATABASE ' + @qdb
     + N' SET QUERY_STORE (OPERATION_MODE = READ_WRITE, QUERY_CAPTURE_MODE = ALL)');
 
 GO
