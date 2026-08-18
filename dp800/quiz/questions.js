@@ -1401,5 +1401,605 @@ const QUIZ_QUESTIONS = [
     "heading": "Stream changes with Change Event Streaming",
     "quote": "Change Event Streaming pushes changes directly to Azure Event Hubs. This approach eliminates polling delays and scales to millions of events per second."
   }
+},
+{
+  "id": "easy-21",
+  "tier": "easy",
+  "domain": "Design and develop database solutions",
+  "module": "Design and implement database objects with SQL",
+  "question": "For storing financial amounts like Price or Revenue, which data type should you choose to avoid the rounding errors that can occur with FLOAT?",
+  "options": [
+    "DECIMAL",
+    "FLOAT",
+    "REAL",
+    "BIGINT"
+  ],
+  "correctIndex": 0,
+  "explanation": "DECIMAL provides exact precision for financial calculations, while FLOAT can introduce rounding errors that can't be fixed without recalculating every dependent value.",
+  "source": {
+    "path": "dp800/Design and develop database solutions/Design and implement database objects with SQL/03-build-effective-tables.md",
+    "heading": "Explore common data types",
+    "quote": "using FLOAT for financial data instead of DECIMAL can introduce rounding errors that can't be fixed without recalculating every dependent value"
+  }
+},
+{
+  "id": "medium-21",
+  "tier": "medium",
+  "domain": "Design and develop database solutions",
+  "module": "Design and implement database objects with SQL",
+  "question": "A ProductName column stores only ASCII characters and never needs Unicode support. Per the lesson's example, what effect does switching its type from NVARCHAR(100) to VARCHAR(100) have?",
+  "options": [
+    "It roughly doubles storage per row",
+    "It cuts string storage in that column roughly in half, since VARCHAR uses 1 byte per character versus NVARCHAR's 2 bytes",
+    "It has no measurable effect on storage",
+    "It forces the column to become a fixed-length CHAR type"
+  ],
+  "correctIndex": 1,
+  "explanation": "VARCHAR uses 1 byte per character versus 2 bytes for NVARCHAR, so a 30-character ProductName uses about 30 bytes as VARCHAR(100) versus about 60 bytes as NVARCHAR(100).",
+  "source": {
+    "path": "dp800/Design and develop database solutions/Design and implement database objects with SQL/03-build-effective-tables.md",
+    "heading": "Design effective columns",
+    "quote": "VARCHAR (1 byte per character) cuts string storage in half. A ProductName VARCHAR(100) uses ~30 bytes vs ~60 bytes for NVARCHAR(100) on a 30-character name."
+  }
+},
+{
+  "id": "easy-22",
+  "tier": "easy",
+  "domain": "Design and develop database solutions",
+  "module": "Implement programmability objects with SQL",
+  "question": "What is the purpose of including SET NOCOUNT ON at the start of a stored procedure?",
+  "options": [
+    "It prevents the message about the number of rows affected from being sent to the client, reducing network traffic",
+    "It disables all error handling within the procedure",
+    "It forces the procedure to run inside a single transaction",
+    "It converts the procedure into a scalar function"
+  ],
+  "correctIndex": 0,
+  "explanation": "SET NOCOUNT ON suppresses the rows-affected message sent to the client, which reduces network traffic and improves performance, especially for procedures that execute multiple statements.",
+  "source": {
+    "path": "dp800/Design and develop database solutions/Implement programmability objects with SQL/03-create-stored-procedures.md",
+    "heading": "Create basic stored procedures",
+    "quote": "The SET NOCOUNT ON statement prevents the message about the number of rows affected from being sent to the client. This reduces network traffic and improves performance"
+  }
+},
+{
+  "id": "medium-22",
+  "tier": "medium",
+  "domain": "Design and develop database solutions",
+  "module": "Implement programmability objects with SQL",
+  "question": "Why does the lesson recommend avoiding the sp_ prefix when naming your own stored procedures?",
+  "options": [
+    "SQL Server reserves sp_ for system procedures in master, so it searches master first before the current database, adding unnecessary overhead",
+    "sp_ procedures cannot accept parameters",
+    "The sp_ prefix disables query plan caching",
+    "SQL Server automatically deletes any procedure named with the sp_ prefix"
+  ],
+  "correctIndex": 0,
+  "explanation": "SQL Server reserves the sp_ prefix for system procedures stored in master, so naming a user procedure with that prefix makes SQL Server search master first, adding unnecessary lookup overhead.",
+  "source": {
+    "path": "dp800/Design and develop database solutions/Implement programmability objects with SQL/03-create-stored-procedures.md",
+    "heading": "Avoid the sp_ prefix",
+    "quote": "SQL Server reserves this prefix for system procedures stored in the master database. When you name a procedure with sp_, SQL Server first searches master before checking the current database, adding unnecessary overhead"
+  }
+},
+{
+  "id": "hard-21",
+  "tier": "hard",
+  "domain": "Design and develop database solutions",
+  "module": "Implement programmability objects with SQL",
+  "question": "Inside a stored procedure's CATCH block, why does the lesson check @@TRANCOUNT before issuing ROLLBACK TRANSACTION?",
+  "options": [
+    "To avoid an error from attempting to roll back a transaction that already completed or was never started",
+    "To count how many stored procedures are currently executing",
+    "To determine whether the procedure was called with output parameters",
+    "@@TRANCOUNT has no relation to ROLLBACK and is checked only for logging"
+  ],
+  "correctIndex": 0,
+  "explanation": "Checking @@TRANCOUNT before rolling back prevents an error that would occur if the transaction already completed or was never started, which can happen depending on where the failure occurred.",
+  "source": {
+    "path": "dp800/Design and develop database solutions/Implement programmability objects with SQL/03-create-stored-procedures.md",
+    "heading": "Implement error handling",
+    "quote": "Always check @@TRANCOUNT before rolling back transactions in the CATCH block. This prevents errors if the transaction already completed or was never started."
+  }
+},
+{
+  "id": "medium-23",
+  "tier": "medium",
+  "domain": "Design and develop database solutions",
+  "module": "Implement programmability objects with SQL",
+  "question": "A scalar function calculates employee tenure using GETDATE(). What limitation does this introduce?",
+  "options": [
+    "The function becomes non-deterministic and can't be used in indexed views or indexes on computed columns",
+    "The function can no longer accept parameters",
+    "The function must be rewritten as a stored procedure",
+    "SQL Server will refuse to create the function at all"
+  ],
+  "correctIndex": 0,
+  "explanation": "Referencing GETDATE() makes a function non-deterministic since its result changes between calls with the same input, which disqualifies it from use in indexed views or indexes on computed columns.",
+  "source": {
+    "path": "dp800/Design and develop database solutions/Implement programmability objects with SQL/04-create-scalar-functions.md",
+    "heading": "Implement scalar functions with business logic",
+    "quote": "This function uses GETDATE(), which makes it non-deterministic. Non-deterministic functions can't be used in indexed views or indexes on computed columns."
+  }
+},
+{
+  "id": "hard-22",
+  "tier": "hard",
+  "domain": "Design and develop database solutions",
+  "module": "Implement programmability objects with SQL",
+  "question": "A scalar function is called in the WHERE clause of a query against a large table. What performance risk does the lesson warn about, and what alternative does it suggest?",
+  "options": [
+    "SQL Server may execute the function once per row, significantly hurting performance; consider an inline table-valued function instead",
+    "The function will always run exactly once regardless of row count, so there's no performance concern",
+    "SQL Server automatically converts the WHERE clause into a JOIN, eliminating any performance concern",
+    "The query fails to compile because scalar functions aren't allowed in WHERE clauses"
+  ],
+  "correctIndex": 0,
+  "explanation": "SQL Server may invoke a scalar function once per row when it's used in a WHERE clause or SELECT list against a large table, so the lesson suggests inline table-valued functions as a better-performing alternative.",
+  "source": {
+    "path": "dp800/Design and develop database solutions/Implement programmability objects with SQL/04-create-scalar-functions.md",
+    "heading": "Apply best practices for scalar functions",
+    "quote": "When you use a scalar function in a WHERE clause or SELECT list with large tables, SQL Server may execute the function for every row. This can significantly impact query performance. For such scenarios, consider inline table-valued functions as an alternative."
+  }
+},
+{
+  "id": "easy-23",
+  "tier": "easy",
+  "domain": "Design and develop database solutions",
+  "module": "Implement programmability objects with SQL",
+  "question": "What is a key difference between an inline table-valued function and a multi-statement table-valued function?",
+  "options": [
+    "An inline TVF's table structure is inferred by SQL Server from its single SELECT statement, while a multi-statement TVF requires you to explicitly declare the returned table's structure",
+    "A multi-statement TVF can only return a single row, while an inline TVF can return many rows",
+    "Inline TVFs cannot accept parameters, while multi-statement TVFs can",
+    "Multi-statement TVFs cannot be used in a FROM clause"
+  ],
+  "correctIndex": 0,
+  "explanation": "Inline TVFs contain a single SELECT and let SQL Server infer the returned table's structure, while multi-statement TVFs require an explicit table declaration and a BEGIN...END block to populate it.",
+  "source": {
+    "path": "dp800/Design and develop database solutions/Implement programmability objects with SQL/05-create-table-valued-functions.md",
+    "heading": "Understand table-valued function types",
+    "quote": "With inline functions, you don't define the table structure—SQL Server infers it from your SELECT statement."
+  }
+},
+{
+  "id": "usecase-11",
+  "tier": "usecase",
+  "domain": "Design and develop database solutions",
+  "module": "Implement programmability objects with SQL",
+  "question": "A report needs to call a table-valued function once per row of the Customers table, passing each row's own CustomerID value into the function as a parameter. Which construct is designed for this kind of row-by-row, correlated call?",
+  "options": [
+    "CROSS APPLY, calling the function with the correlated column value",
+    "A plain INNER JOIN with no ON clause",
+    "UNION ALL between the two tables",
+    "A recursive CTE anchored on the Customers table"
+  ],
+  "correctIndex": 0,
+  "explanation": "CROSS APPLY is built for passing a correlated column value like c.CustomerID into a table-valued function for each outer row, acting like a correlated subquery but with better readability and reusability.",
+  "source": {
+    "path": "dp800/Design and develop database solutions/Implement programmability objects with SQL/05-create-table-valued-functions.md",
+    "heading": "Use table-valued functions in queries",
+    "quote": "The function acts as a correlated subquery but with better readability and reusability."
+  }
+},
+{
+  "id": "easy-24",
+  "tier": "easy",
+  "domain": "Design and develop database solutions",
+  "module": "Implement SQL solutions by using AI-assisted tools",
+  "question": "What is SQL MCP Server, Microsoft's open-source solution for connecting AI agents to SQL databases, built on?",
+  "options": [
+    "Data API builder",
+    "Azure Functions",
+    "SQL Server Reporting Services",
+    "Entity Framework Core"
+  ],
+  "correctIndex": 0,
+  "explanation": "SQL MCP Server is described as Microsoft's open-source solution built on Data API builder, enabling AI agents to interact with SQL databases.",
+  "source": {
+    "path": "dp800/Design and develop database solutions/Implement SQL solutions by using AI-assisted tools/07-connect-to-mcp-server-endpoints.md",
+    "heading": "Connect to SQL Server MCP endpoints",
+    "quote": "SQL MCP Server is Microsoft's open-source solution built on Data API builder that enables AI agents to interact with SQL databases."
+  }
+},
+{
+  "id": "medium-24",
+  "tier": "medium",
+  "domain": "Design and develop database solutions",
+  "module": "Implement SQL solutions by using AI-assisted tools",
+  "question": "A team wants to give multiple team members and an automated process shared, non-interactive access to an MCP server endpoint. Which authentication method does the lesson recommend for this scenario?",
+  "options": [
+    "Interactive browser sign-in",
+    "Service principal",
+    "An API key pasted directly into mcp.json",
+    "No authentication, relying on network isolation alone"
+  ],
+  "correctIndex": 1,
+  "explanation": "The lesson recommends configuring a service principal (a Microsoft Entra ID application) for automated or shared MCP access, distinct from interactive sign-in which suits individual development use.",
+  "source": {
+    "path": "dp800/Design and develop database solutions/Implement SQL solutions by using AI-assisted tools/07-connect-to-mcp-server-endpoints.md",
+    "heading": "Configure authentication for MCP endpoints",
+    "quote": "Service principal: Configure a Microsoft Entra ID application with appropriate permissions. Best for automated scenarios and shared environments."
+  }
+},
+{
+  "id": "usecase-12",
+  "tier": "usecase",
+  "domain": "Design and develop database solutions",
+  "module": "Implement SQL solutions by using AI-assisted tools",
+  "question": "A developer is testing new MCP-based Copilot prompts and wants to avoid any risk of an AI assistant querying live customer data while iterating. What does the lesson recommend?",
+  "options": [
+    "Configure separate MCP endpoints for development, test, and production, and avoid connecting AI assistants to production data during routine development",
+    "Grant the AI assistant full production access so results are always realistic",
+    "Disable MCP entirely during development",
+    "Use the same MCP endpoint for all environments to keep configuration simple"
+  ],
+  "correctIndex": 0,
+  "explanation": "The lesson's best practice is to configure separate MCP endpoints per environment and avoid connecting AI assistants to production data during routine development work.",
+  "source": {
+    "path": "dp800/Design and develop database solutions/Implement SQL solutions by using AI-assisted tools/07-connect-to-mcp-server-endpoints.md",
+    "heading": "Best practices for MCP endpoint management",
+    "quote": "Separate environments: Configure different MCP endpoints for development, test, and production databases. Avoid connecting AI assistants to production data during routine development."
+  }
+},
+{
+  "id": "easy-25",
+  "tier": "easy",
+  "domain": "Implement AI capabilities in database solutions",
+  "module": "Design and implement RAG with SQL",
+  "question": "In the chat message structure used to call a language model, what does the system role define?",
+  "options": [
+    "How the assistant should behave",
+    "The original question from the user",
+    "The retrieved database context only",
+    "The final formatted JSON response"
+  ],
+  "correctIndex": 0,
+  "explanation": "The system role sets the ground rules for how the assistant should behave, while the user role carries the question and retrieved context together.",
+  "source": {
+    "path": "dp800/Implement AI capabilities in database solutions/Design and implement RAG with SQL/04-augment-prompts-database-context.md",
+    "heading": "Understand the chat message structure",
+    "quote": "The system role defines how the assistant should behave."
+  }
+},
+{
+  "id": "medium-25",
+  "tier": "medium",
+  "domain": "Implement AI capabilities in database solutions",
+  "module": "Design and implement RAG with SQL",
+  "question": "For a RAG scenario where you want consistent, factual answers grounded in retrieved data, what temperature range does the lesson recommend?",
+  "options": [
+    "0.3 to 0.5",
+    "1.0 to 1.5",
+    "Exactly 2.0, the maximum",
+    "Temperature has no effect on RAG output consistency"
+  ],
+  "correctIndex": 0,
+  "explanation": "Lower temperature values between 0.3 and 0.5 produce more consistent, factual responses, which is what grounded RAG answers need, unlike higher values that favor creativity.",
+  "source": {
+    "path": "dp800/Implement AI capabilities in database solutions/Design and implement RAG with SQL/04-augment-prompts-database-context.md",
+    "heading": "Control model behavior",
+    "quote": "temperature controls creativity on a scale from 0 to 2. Lower values (0.3 to 0.5) produce more consistent, factual responses."
+  }
+},
+{
+  "id": "usecase-13",
+  "tier": "usecase",
+  "domain": "Implement AI capabilities in database solutions",
+  "module": "Design and implement RAG with SQL",
+  "question": "A team wants to build the entire chat completion request payload for Azure OpenAI, including the system and user messages, directly inside a T-SQL stored procedure without any application code. Which T-SQL functions does the lesson use for this?",
+  "options": [
+    "JSON_OBJECT and JSON_ARRAY",
+    "OPENJSON and JSON_MODIFY",
+    "STRING_AGG and CONCAT",
+    "FOR JSON AUTO only"
+  ],
+  "correctIndex": 0,
+  "explanation": "The lesson builds the request payload using JSON_OBJECT and JSON_ARRAY, which handle the JSON formatting for the messages array directly in T-SQL.",
+  "source": {
+    "path": "dp800/Implement AI capabilities in database solutions/Design and implement RAG with SQL/04-augment-prompts-database-context.md",
+    "heading": "Build prompts in T-SQL",
+    "quote": "T-SQL's `JSON_OBJECT` and `JSON_ARRAY` functions handle the JSON formatting."
+  }
+},
+{
+  "id": "medium-26",
+  "tier": "medium",
+  "domain": "Implement AI capabilities in database solutions",
+  "module": "Design and implement RAG with SQL",
+  "question": "sp_invoke_external_rest_endpoint is enabled by default in Azure SQL Database. In which product must it instead be explicitly enabled using sp_configure?",
+  "options": [
+    "SQL Server 2025",
+    "SQL Server 2019",
+    "Azure SQL Managed Instance",
+    "Microsoft Fabric warehouses"
+  ],
+  "correctIndex": 0,
+  "explanation": "The lesson states the stored procedure is enabled by default in Azure SQL Database, but must be enabled in SQL Server 2025 using sp_configure.",
+  "source": {
+    "path": "dp800/Implement AI capabilities in database solutions/Design and implement RAG with SQL/05-generate-process-rag-responses.md",
+    "heading": "Call the model from SQL",
+    "quote": "The stored procedure is enabled by default in Azure SQL Database and can be enabled in SQL Server 2025 using `sp_configure`."
+  }
+},
+{
+  "id": "hard-23",
+  "tier": "hard",
+  "domain": "Implement AI capabilities in database solutions",
+  "module": "Design and implement RAG with SQL",
+  "question": "In a call to sp_invoke_external_rest_endpoint, what does adding the @retry_count = 3 parameter do?",
+  "options": [
+    "It automatically retries the call up to three times for transient failures like timeouts before giving up",
+    "It limits the response to three JSON fields",
+    "It caps the number of tokens the model can generate to three hundred",
+    "It forces the credential to be re-authenticated three times"
+  ],
+  "correctIndex": 0,
+  "explanation": "The @retry_count parameter makes the stored procedure retry the call automatically for transient failures like timeouts, attempting up to the specified number of times before giving up.",
+  "source": {
+    "path": "dp800/Implement AI capabilities in database solutions/Design and implement RAG with SQL/05-generate-process-rag-responses.md",
+    "heading": "Manage errors and retries",
+    "quote": "For transient failures like timeouts or temporary service unavailability, the stored procedure can retry automatically. Add the `@retry_count` parameter and in this example, it attempts the call up to three times before giving up"
+  }
+},
+{
+  "id": "medium-27",
+  "tier": "medium",
+  "domain": "Implement AI capabilities in database solutions",
+  "module": "Design and implement intelligent search with SQL",
+  "question": "Why does Reciprocal Rank Fusion (RRF) avoid the need to normalize full-text BM25 scores and vector cosine distances onto the same scale before combining them?",
+  "options": [
+    "RRF combines results based on rank position rather than raw score values, sidestepping the different scales entirely",
+    "RRF converts every score to a percentage before combining",
+    "RRF only ever uses the vector search score and ignores full-text scores",
+    "SQL Server automatically normalizes all scores before RRF runs"
+  ],
+  "correctIndex": 0,
+  "explanation": "RRF works with rank positions instead of raw scores, so it sidesteps the fact that BM25 scores and cosine distances use completely different scales.",
+  "source": {
+    "path": "dp800/Implement AI capabilities in database solutions/Design and implement intelligent search with SQL/06-implement-hybrid-search-ranking.md",
+    "heading": "Merge results with Reciprocal Rank Fusion",
+    "quote": "Score normalization isn't needed. Full-text BM25 scores and cosine distances use completely different scales. RRF sidesteps these differences by using ranks instead."
+  }
+},
+{
+  "id": "usecase-14",
+  "tier": "usecase",
+  "domain": "Implement AI capabilities in database solutions",
+  "module": "Design and implement intelligent search with SQL",
+  "question": "A hybrid search implementation returns results driven too heavily by exact keyword matches, and the team wants vector/semantic relevance to count roughly twice as much. Based on the lesson's tuning guidance, how should they adjust the RRF calculation?",
+  "options": [
+    "Multiply the vector search term's contribution by 2 in the RRF score formula",
+    "Double the value of the RRF constant k for the entire query",
+    "Remove the full-text search term from the query entirely",
+    "Double @topN for the full-text search only"
+  ],
+  "correctIndex": 0,
+  "explanation": "The lesson shows weighting one source more heavily by multiplying its contribution in the RRF sum, e.g. using 2.0/(k + vector_rank) to weight vector search twice as much as keyword search.",
+  "source": {
+    "path": "dp800/Implement AI capabilities in database solutions/Design and implement intelligent search with SQL/06-implement-hybrid-search-ranking.md",
+    "heading": "Tune hybrid search parameters",
+    "quote": "Weight vector search 2x more than keyword search"
+  }
+},
+{
+  "id": "easy-26",
+  "tier": "easy",
+  "domain": "Implement AI capabilities in database solutions",
+  "module": "Design and implement models and embeddings with SQL",
+  "question": "Which embedding maintenance approach streams DML changes directly into Azure Event Hubs in near real-time, without adding work to database transactions?",
+  "options": [
+    "Change Event Streaming (CES)",
+    "Table triggers",
+    "Azure Logic Apps",
+    "Microsoft Foundry"
+  ],
+  "correctIndex": 0,
+  "explanation": "Change Event Streaming pushes DML changes directly into Azure Event Hubs in near real-time, letting downstream consumers regenerate embeddings without adding work to database transactions.",
+  "source": {
+    "path": "dp800/Implement AI capabilities in database solutions/Design and implement models and embeddings with SQL/05-generate-maintain-embeddings-sql-database-workloads.md",
+    "heading": "Choose an embedding maintenance method",
+    "quote": "Change event streaming (CES) streams DML changes directly into Azure Event Hubs in near real-time. Downstream systems can consume these events and regenerate embeddings as changes occur without adding work to database transactions."
+  }
+},
+{
+  "id": "easy-27",
+  "tier": "easy",
+  "domain": "Secure, optimize, and deploy database solutions",
+  "module": "Integrate SQL solutions with Azure services",
+  "question": "In Application Insights telemetry for a Data API Builder deployment, what does dependency telemetry specifically capture?",
+  "options": [
+    "Database queries issued by DAB, including execution time and success/failure status",
+    "Only front-end page load times",
+    "The number of GitHub commits to the DAB configuration repo",
+    "CPU temperature of the underlying host machine"
+  ],
+  "correctIndex": 0,
+  "explanation": "Dependency telemetry tracks database queries with their execution time and success/failure status, separate from request telemetry or exception telemetry.",
+  "source": {
+    "path": "dp800/Secure, optimize, and deploy database solutions/Integrate SQL solutions with Azure services/06-recommend-azure-monitor-configurations.md",
+    "heading": "Configure Application Insights integration",
+    "quote": "Dependency telemetry - Database queries with execution time and success/failure status"
+  }
+},
+{
+  "id": "hard-24",
+  "tier": "hard",
+  "domain": "Secure, optimize, and deploy database solutions",
+  "module": "Integrate SQL solutions with Azure services",
+  "question": "When configuring Azure Monitor alert rules for a DAB deployment, what does the lesson recommend to avoid alert fatigue?",
+  "options": [
+    "Start with high-severity conditions and refine thresholds based on normal operating patterns",
+    "Configure every possible metric as a critical alert immediately",
+    "Disable all alerts until a major incident occurs",
+    "Set every alert's evaluation frequency to one second"
+  ],
+  "correctIndex": 0,
+  "explanation": "The lesson recommends configuring alerts thoughtfully by starting with high-severity conditions and refining thresholds based on observed normal operating patterns, rather than alerting on everything at once.",
+  "source": {
+    "path": "dp800/Secure, optimize, and deploy database solutions/Integrate SQL solutions with Azure services/06-recommend-azure-monitor-configurations.md",
+    "heading": "Configure alert rules for proactive monitoring",
+    "quote": "Configure alerts thoughtfully to avoid alert fatigue. Start with high-severity conditions and refine thresholds based on normal operating patterns."
+  }
+},
+{
+  "id": "usecase-15",
+  "tier": "usecase",
+  "domain": "Secure, optimize, and deploy database solutions",
+  "module": "Integrate SQL solutions with Azure services",
+  "question": "A DAB-backed API is called by multiple client applications, and the team needs to see the complete end-to-end latency breakdown for a single request as it flows from client through the API to the database. What should they implement?",
+  "options": [
+    "Distributed tracing, correlating requests using trace context headers like traceparent",
+    "A single high-level uptime check",
+    "Increasing MAXDOP on the database",
+    "Disabling Application Insights sampling entirely"
+  ],
+  "correctIndex": 0,
+  "explanation": "Distributed tracing correlates requests across the client, API, and database using trace context headers such as traceparent, letting Application Insights show the end-to-end latency breakdown for a single request.",
+  "source": {
+    "path": "dp800/Secure, optimize, and deploy database solutions/Integrate SQL solutions with Azure services/06-recommend-azure-monitor-configurations.md",
+    "heading": "Implement distributed tracing",
+    "quote": "distributed tracing connects the complete request flow from client through API to database."
+  }
+},
+{
+  "id": "easy-28",
+  "tier": "easy",
+  "domain": "Secure, optimize, and deploy database solutions",
+  "module": "Integrate SQL solutions with Azure services",
+  "question": "Which Azure hosting option includes Data API Builder as a built-in feature called database connections, offering the simplest deployment when your API complements a static frontend?",
+  "options": [
+    "Azure Static Web Apps",
+    "Azure Container Apps",
+    "Azure App Service",
+    "Azure Kubernetes Service"
+  ],
+  "correctIndex": 0,
+  "explanation": "Azure Static Web Apps includes DAB as a built-in feature called database connections, described as the simplest deployment experience when the API complements a static frontend.",
+  "source": {
+    "path": "dp800/Secure, optimize, and deploy database solutions/Integrate SQL solutions with Azure services/05-deploy-data-api-builder-azure-services.md",
+    "heading": "Deploy to Azure Static Web Apps",
+    "quote": "includes Data API Builder as a built-in feature called database connections. This integration provides the simplest deployment experience when your API complements a static frontend."
+  }
+},
+{
+  "id": "medium-28",
+  "tier": "medium",
+  "domain": "Secure, optimize, and deploy database solutions",
+  "module": "Optimize database performance",
+  "question": "Which Query Store view does the lesson describe as the most common starting point for day-to-day performance tuning?",
+  "options": [
+    "Top Resource Consuming Queries",
+    "Regressed Queries",
+    "Queries With Forced Plans",
+    "Query Wait Statistics"
+  ],
+  "correctIndex": 0,
+  "explanation": "Top Resource Consuming Queries shows the highest resource-usage queries for a chosen metric and time range, and the lesson calls it the most common starting point for day-to-day performance tuning.",
+  "source": {
+    "path": "dp800/Secure, optimize, and deploy database solutions/Optimize database performance/05-monitor-tune-queries-query-store.md",
+    "heading": "Detect regressed queries",
+    "quote": "Top Resource Consuming Queries: Shows the queries with the highest resource usage for a chosen metric and time range. This report is the most common starting point for day-to-day performance tuning."
+  }
+},
+{
+  "id": "hard-25",
+  "tier": "hard",
+  "domain": "Secure, optimize, and deploy database solutions",
+  "module": "Optimize database performance",
+  "question": "Query Store silently switches to read-only mode and stops collecting new data when it runs out of storage space. How can you detect that this has happened?",
+  "options": [
+    "Query sys.database_query_store_options and compare actual_state_desc to desired_state_desc",
+    "Check the SQL Server error log for error 1205",
+    "Run DBCC CHECKDB and look for corruption warnings",
+    "There is no way to detect this; you must rebuild the database from backup"
+  ],
+  "correctIndex": 0,
+  "explanation": "Querying sys.database_query_store_options reveals whether actual_state_desc shows READ_ONLY while desired_state_desc shows READ_WRITE, which indicates Query Store switched itself to read-only after running out of space.",
+  "source": {
+    "path": "dp800/Secure, optimize, and deploy database solutions/Optimize database performance/05-monitor-tune-queries-query-store.md",
+    "heading": "Follow best practices",
+    "quote": "If `actual_state_desc` shows `READ_ONLY` while `desired_state_desc` shows `READ_WRITE`, Query Store switched itself. The `readonly_reason` column tells you why."
+  }
+},
+{
+  "id": "hard-26",
+  "tier": "hard",
+  "domain": "Secure, optimize, and deploy database solutions",
+  "module": "Optimize database performance",
+  "question": "Read Committed Snapshot Isolation (RCSI) is enabled by default in Azure SQL Database. Which type of blocking does RCSI NOT eliminate?",
+  "options": [
+    "Blocking between two writer sessions that both need to modify the same rows",
+    "Blocking between a reader and a writer session",
+    "Blocking caused by a SELECT statement waiting on a row's shared lock",
+    "All blocking, since RCSI eliminates locking entirely"
+  ],
+  "correctIndex": 0,
+  "explanation": "RCSI removes blocking between readers and writers by using row versioning for reads, but two sessions that both need to write to the same rows can still block each other.",
+  "source": {
+    "path": "dp800/Secure, optimize, and deploy database solutions/Optimize database performance/06-identify-resolve-blocking-deadlocks.md",
+    "heading": "Identify blocking chains",
+    "quote": "This setting significantly reduces blocking between readers and writers. However, blocking between two writers, or blocking caused by explicit transactions with higher isolation levels, still happens."
+  }
+},
+{
+  "id": "usecase-16",
+  "tier": "usecase",
+  "domain": "Secure, optimize, and deploy database solutions",
+  "module": "Optimize database performance",
+  "question": "An application occasionally receives SQL error 1205 during peak load. According to the lesson's guidance, how should the application handle this error?",
+  "options": [
+    "Catch the error, roll back, pause briefly with a randomized delay, and resubmit the transaction",
+    "Immediately terminate the database connection and alert an administrator",
+    "Ignore the error since SQL Server automatically retries deadlock victims",
+    "Escalate the transaction's isolation level to SERIALIZABLE and resubmit without a delay"
+  ],
+  "correctIndex": 0,
+  "explanation": "Error 1205 means the transaction was chosen as a deadlock victim and rolled back, so the application should catch it, pause briefly with a randomized delay, and resubmit, which also avoids repeatedly deadlocking with the same transaction.",
+  "source": {
+    "path": "dp800/Secure, optimize, and deploy database solutions/Optimize database performance/06-identify-resolve-blocking-deadlocks.md",
+    "heading": "Handle deadlocks in application code",
+    "quote": "Your application should catch this error, pause briefly, and resubmit the transaction."
+  }
+},
+{
+  "id": "hard-27",
+  "tier": "hard",
+  "domain": "Secure, optimize, and deploy database solutions",
+  "module": "Implement data security and compliance with SQL",
+  "question": "When validating AI-generated queries submitted through an MCP endpoint, why does the lesson recommend implementing allow lists for permitted tables and operations rather than trying to block malicious patterns?",
+  "options": [
+    "Because blocking known-bad patterns is inherently incomplete, and you should never trust AI-generated queries without validation against what's explicitly permitted",
+    "Because allow lists are the only mechanism supported by T-SQL",
+    "Because block lists are more expensive to evaluate at query time",
+    "Because allow lists automatically encrypt all returned data"
+  ],
+  "correctIndex": 0,
+  "explanation": "The lesson explicitly warns to never trust AI-generated queries without validation and to implement allow lists for permitted tables and operations rather than relying on block lists of malicious patterns, which are easy to miss cases with.",
+  "source": {
+    "path": "dp800/Secure, optimize, and deploy database solutions/Implement data security and compliance with SQL/08-secure-graphql-rest-mcp-endpoints.md",
+    "heading": "Secure MCP endpoints",
+    "quote": "Never trust AI-generated queries without validation. Implement allow lists for permitted tables and operations rather than trying to block malicious patterns."
+  }
+},
+{
+  "id": "usecase-17",
+  "tier": "usecase",
+  "domain": "Secure, optimize, and deploy database solutions",
+  "module": "Implement CI CD by using SQL database projects",
+  "question": "A security team is worried that someone could modify a pipeline definition on a feature branch to deploy directly to production using the production service connection. Which Azure DevOps control specifically prevents this?",
+  "options": [
+    "A branch control check on the service connection, which only allows pipelines running in the context of main to access it",
+    "A required-reviewers rule on the pull request",
+    "A CODEOWNERS file listing the database team",
+    "A firewall rule restricting the build agent's IP address"
+  ],
+  "correctIndex": 0,
+  "explanation": "A branch control check on the service connection locks down which pipelines can access production credentials to only those running in the context of main, so even a modified feature-branch pipeline is refused.",
+  "source": {
+    "path": "dp800/Secure, optimize, and deploy database solutions/Implement CI CD by using SQL database projects/06-implement-cicd-pipelines.md",
+    "heading": "Branch control checks",
+    "quote": "In Azure DevOps, a **branch control check** on service connections locks down which pipelines can access production credentials. Only pipelines running in the context of `main` get access. Even if someone modifies a pipeline on a feature branch to target production, the service connection refuses the request."
+  }
 }
 ];
