@@ -1,0 +1,7 @@
+# Summary
+
+Completed
+
+- 1 minute
+
+Proper storage configuration is crucial for the performance of your Azure Virtual Machines. To ensure optimal performance, SQL Server should run on premium disk storage or ultra disk. The Resource Provider for SQL Server can automate the creation of storage for your SQL Servers on Azure Virtual Machines, simplifying the setup process. Additionally, Resource Governor can be used to manage to differ workloads within the same SQL Server, allowing you to allocate resources efficiently and maintain balanced performance across various applications. This combination of premium storage and resource management tools ensures that your SQL Server operates smoothly and efficiently in an Azure environment.

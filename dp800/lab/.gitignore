@@ -1,6 +1,4 @@
 .env
-restore/*.bak
-restore/*.BAK
 backups/*
 !backups/.gitkeep
 !restore/.gitkeep

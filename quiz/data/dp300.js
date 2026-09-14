@@ -1661,5 +1661,345 @@ const DP300_QUESTIONS = [
     "heading": "Select and configure the mechanism",
     "quote": "On Azure VMs, both require careful design of quorum, networking, load balancing, storage, and domain dependencies."
   }
+},
+{
+  "id": "usecase-01",
+  "tier": "usecase",
+  "domain": "Plan and implement data platform resources",
+  "module": "Plan and deploy Azure SQL solutions",
+  "question": "A company runs an operational database that needs to automatically mirror data into OneLake for immediate analytics in Fabric. Which service fits this scenario?",
+  "options": [
+    "SQL Database in Microsoft Fabric",
+    "Azure SQL Managed Instance",
+    "SQL Server on Azure Virtual Machines",
+    "Azure Arc-enabled SQL Server"
+  ],
+  "correctIndex": 0,
+  "explanation": "SQL Database in Fabric is purpose-built to keep transactional data operational while continuously mirroring it into OneLake for analytics.",
+  "source": {
+    "path": "dp300/content/Plan and implement data platform resources/Plan and deploy Azure SQL solutions/README.md",
+    "heading": "Choose the right SQL platform",
+    "quote": "SQL Database in Microsoft Fabric is an operational database that automatically mirrors data into OneLake; it suits applications that need transactional data and immediate Fabric analytics."
+  }
+},
+{
+  "id": "usecase-02",
+  "tier": "usecase",
+  "domain": "Plan and implement data platform resources",
+  "module": "Configure resources for scale and performance",
+  "question": "A large sales table is partitioned by month to support fast archiving of old data. What must be true for this design to work well?",
+  "options": [
+    "Clustered indexes and the partition function are aligned, and important queries filter on the partition key",
+    "The table must use page compression exclusively",
+    "The database must run on SQL Server on Azure VMs",
+    "Read scale-out replicas must be enabled"
+  ],
+  "correctIndex": 0,
+  "explanation": "Partition switching for archiving only works cleanly when the clustered index and partition function agree, and queries actually benefit only if they filter on that same key.",
+  "source": {
+    "path": "dp300/content/Plan and implement data platform resources/Configure resources for scale and performance/README.md",
+    "heading": "Data layout",
+    "quote": "Align clustered indexes and partition functions, and use partition switching for fast archive or load operations. Confirm that important queries filter on the partition key."
+  }
+},
+{
+  "id": "usecase-03",
+  "tier": "usecase",
+  "domain": "Plan and implement data platform resources",
+  "module": "Plan and implement a migration strategy",
+  "question": "A company is migrating a production database and wants to minimize downtime while still monitoring for issues before the final cutover. Which migration strategy and practice should they follow?",
+  "options": [
+    "Use an online migration, closely monitoring replication latency and schema changes until final synchronization",
+    "Use an offline migration and skip rehearsal to save time",
+    "Delete the source database immediately after copying data",
+    "Use an online migration but skip row-count validation after cutover"
+  ],
+  "correctIndex": 0,
+  "explanation": "An online migration is what minimizes downtime, but that benefit only holds up if latency and schema drift are actively monitored right up to the final sync.",
+  "source": {
+    "path": "dp300/content/Plan and implement data platform resources/Plan and implement a migration strategy/README.md",
+    "heading": "Assess before moving",
+    "quote": "It minimizes downtime but needs careful monitoring of latency, schema changes, and final synchronization."
+  }
+},
+{
+  "id": "usecase-04",
+  "tier": "usecase",
+  "domain": "Implement a secure environment",
+  "module": "Configure database authentication and authorization",
+  "question": "An application team wants a cohesive permission boundary for a set of related tables and stored procedures without granting broad server-wide roles. What approach fits best?",
+  "options": [
+    "Prefer schema-level permissions for the application's objects",
+    "Grant db_owner to the application's service principal",
+    "Use only server-level logins with sysadmin",
+    "Disable authorization checks for the application's connection"
+  ],
+  "correctIndex": 0,
+  "explanation": "Schema-level permissions give the application a coherent boundary around its own objects without the blast radius of a fixed role like db_owner.",
+  "source": {
+    "path": "dp300/content/Implement a secure environment/Configure database authentication and authorization/README.md",
+    "heading": "Authorize with least privilege",
+    "quote": "Prefer schema-level permissions for a cohesive application boundary; avoid broad fixed roles such as `db_owner`."
+  }
+},
+{
+  "id": "usecase-05",
+  "tier": "usecase",
+  "domain": "Implement a secure environment",
+  "module": "Implement security for data at rest and data in transit",
+  "question": "A team needs to encrypt specific highly sensitive columns so that even the database engine cannot view the plaintext, while still allowing equality comparisons in WHERE clauses. Which feature and configuration fits?",
+  "options": [
+    "Always Encrypted with deterministic encryption",
+    "Transparent Data Encryption with a customer-managed key",
+    "Dynamic Data Masking",
+    "Row-Level Security with a predicate function"
+  ],
+  "correctIndex": 0,
+  "explanation": "Always Encrypted keeps plaintext away from the engine entirely, and deterministic encryption is specifically what preserves the ability to do equality lookups on those columns.",
+  "source": {
+    "path": "dp300/content/Implement a secure environment/Implement security for data at rest and data in transit/README.md",
+    "heading": "Protect data at rest",
+    "quote": "Always Encrypted protects selected columns so the database engine cannot view plaintext. Use deterministic encryption only when equality lookups are required..."
+  }
+},
+{
+  "id": "usecase-06",
+  "tier": "usecase",
+  "domain": "Implement a secure environment",
+  "module": "Implement compliance controls for sensitive data",
+  "question": "A compliance team wants sensitive columns identified consistently across teams so that permissions, encryption, and auditing decisions can be applied consistently. What should they implement first?",
+  "options": [
+    "Classify columns by sensitivity and business purpose",
+    "Enable Dynamic Data Masking on every column",
+    "Deploy Ledger on all tables",
+    "Disable change tracking"
+  ],
+  "correctIndex": 0,
+  "explanation": "Classification is the foundation everything else builds on — without a consistent label for sensitivity, permissions and auditing decisions end up applied inconsistently.",
+  "source": {
+    "path": "dp300/content/Implement a secure environment/Implement compliance controls for sensitive data/README.md",
+    "heading": "Discover and govern sensitive data",
+    "quote": "Classify columns by sensitivity and business purpose so teams can apply consistent handling, retention, and access controls."
+  }
+},
+{
+  "id": "usecase-07",
+  "tier": "usecase",
+  "domain": "Monitor, configure, and optimize database resources",
+  "module": "Monitor resource activity and performance",
+  "question": "An operations team receives a vague report that \"the database is slow\" but has no prior performance data to compare against. What should they have done in advance to make this actionable?",
+  "options": [
+    "Captured a baseline of normal CPU, I/O, memory, waits, connections, query duration, and error rates during representative periods",
+    "Disabled Extended Events to reduce overhead",
+    "Relied solely on transient alert spikes",
+    "Waited until the next scheduled maintenance window"
+  ],
+  "correctIndex": 0,
+  "explanation": "Without a captured baseline, there's no \"normal\" to compare the current state against, which is exactly why a vague \"slow\" report is hard to act on.",
+  "source": {
+    "path": "dp300/content/Monitor, configure, and optimize database resources/Monitor resource activity and performance/README.md",
+    "heading": "Establish an operational baseline",
+    "quote": "Capture normal CPU, data and log I/O, memory, waits, connections, query duration, and error rates during representative periods."
+  }
+},
+{
+  "id": "usecase-08",
+  "tier": "usecase",
+  "domain": "Monitor, configure, and optimize database resources",
+  "module": "Monitor and optimize query performance",
+  "question": "A DBA notices Intelligent Insights flagged a query regression. What should they do before acting on the recommendation?",
+  "options": [
+    "Validate its recommendations with workload evidence",
+    "Immediately force the plan Intelligent Insights suggests without review",
+    "Disable Query Store to confirm the issue disappears",
+    "Kill all sessions currently running that query"
+  ],
+  "correctIndex": 0,
+  "explanation": "Intelligent Insights is a symptom detector, not a verified fix — its suggestions still need to be checked against actual workload evidence before acting.",
+  "source": {
+    "path": "dp300/content/Monitor, configure, and optimize database resources/Monitor and optimize query performance/README.md",
+    "heading": "Diagnose before tuning",
+    "quote": "Intelligent Insights can highlight symptoms, but validate its recommendations with workload evidence."
+  }
+},
+{
+  "id": "usecase-09",
+  "tier": "usecase",
+  "domain": "Monitor, configure, and optimize database resources",
+  "module": "Configure database solutions for optimal performance",
+  "question": "A platform team wants to apply verified performance corrections like plan forcing or index recommendations automatically, but with oversight. What should they configure and what governance should follow?",
+  "options": [
+    "Enable automatic tuning on supported services and review its actions under an explicit operational policy",
+    "Enable Resource Governor to auto-tune queries",
+    "Force every execution plan captured in Query Store",
+    "Rebuild every index nightly regardless of fragmentation"
+  ],
+  "correctIndex": 0,
+  "explanation": "Automatic tuning is designed to apply verified corrections on its own, but that autonomy is exactly why its actions still need review under an explicit policy.",
+  "source": {
+    "path": "dp300/content/Monitor, configure, and optimize database resources/Configure database solutions for optimal performance/README.md",
+    "heading": "Maintain trustworthy metadata",
+    "quote": "Automatic tuning can apply verified corrections, such as plan forcing or index recommendations, on supported services. Review its actions and set an explicit operational policy."
+  }
+},
+{
+  "id": "usecase-10",
+  "tier": "usecase",
+  "domain": "Monitor, configure, and optimize database resources",
+  "module": "Configure database solutions for optimal performance",
+  "question": "A team manages multiple databases on the same server and wants to tune behavior for just one database without affecting the others. What should they use?",
+  "options": [
+    "Database-scoped configuration",
+    "A Resource Governor workload classifier",
+    "A server-level compatibility level change",
+    "Elastic Jobs"
+  ],
+  "correctIndex": 0,
+  "explanation": "Database-scoped configuration exists precisely to let one database's behavior be tuned in isolation, instead of a server-wide setting that would affect every database.",
+  "source": {
+    "path": "dp300/content/Monitor, configure, and optimize database resources/Configure database solutions for optimal performance/README.md",
+    "heading": "Maintain trustworthy metadata",
+    "quote": "Database-scoped configuration lets you tune behavior per database without changing the whole server."
+  }
+},
+{
+  "id": "usecase-11",
+  "tier": "usecase",
+  "domain": "Configure and manage automation of tasks",
+  "module": "Create and manage SQL Server Agent jobs",
+  "question": "A team wants job definitions to survive server rebuilds and be reviewable through change history. What practice should they adopt?",
+  "options": [
+    "Store job definitions in source control or a repeatable deployment process",
+    "Keep job definitions only inside the msdb database with no external record",
+    "Recreate jobs manually after every server rebuild",
+    "Disable job history to reduce storage usage"
+  ],
+  "correctIndex": 0,
+  "explanation": "A job that only lives in msdb disappears with the server; treating job definitions as versioned code is what makes them survivable and reviewable.",
+  "source": {
+    "path": "dp300/content/Configure and manage automation of tasks/Create and manage SQL Server Agent jobs/README.md",
+    "heading": "Build reliable jobs",
+    "quote": "Store job definitions in source control or a repeatable deployment process."
+  }
+},
+{
+  "id": "usecase-12",
+  "tier": "usecase",
+  "domain": "Configure and manage automation of tasks",
+  "module": "Automate deployment of database resources",
+  "question": "An organization wants automation identities used in CI/CD pipelines to follow least privilege. What should they do when granting these identities access?",
+  "options": [
+    "Grant automation identities only the permissions required for their resource scope",
+    "Grant the Owner role at the subscription level for simplicity",
+    "Use a shared sysadmin SQL login for all pipelines",
+    "Disable Azure Policy checks for the automation identity"
+  ],
+  "correctIndex": 0,
+  "explanation": "A pipeline identity with subscription-wide Owner access is a bigger risk than the convenience is worth — scoping it to just what the deployment needs limits the exposure.",
+  "source": {
+    "path": "dp300/content/Configure and manage automation of tasks/Automate deployment of database resources/README.md",
+    "heading": "Use repeatable deployments",
+    "quote": "Grant automation identities only the permissions required for their resource scope."
+  }
+},
+{
+  "id": "usecase-13",
+  "tier": "usecase",
+  "domain": "Configure and manage automation of tasks",
+  "module": "Create and manage database tasks in Azure",
+  "question": "A team's retry logic keeps retrying a script that always fails due to a syntax error, wasting time on every scheduled run. What should their retry policy do differently?",
+  "options": [
+    "Distinguish transient platform failures from deterministic script errors",
+    "Always retry every failure the same fixed number of times",
+    "Disable retries entirely for all tasks",
+    "Increase the command timeout until the script succeeds"
+  ],
+  "correctIndex": 0,
+  "explanation": "Retrying a deterministic script bug will never succeed no matter how many times it runs — the retry policy needs to tell that case apart from a genuinely transient failure.",
+  "source": {
+    "path": "dp300/content/Configure and manage automation of tasks/Create and manage database tasks in Azure/README.md",
+    "heading": "Automate fleet operations",
+    "quote": "A retry policy should distinguish transient platform failures from deterministic script errors."
+  }
+},
+{
+  "id": "usecase-14",
+  "tier": "usecase",
+  "domain": "Plan and configure a high availability and disaster recovery (HA DR) environment",
+  "module": "Plan an HA DR strategy for database solutions",
+  "question": "A business defines a maximum acceptable downtime and a maximum acceptable data loss for a critical database, but hasn't yet tested how failover actually behaves for the application. What should they do next?",
+  "options": [
+    "Test the runbook regularly, including planned and unplanned failover, restore validation, application connection behavior, data consistency checks, and failback",
+    "Assume the design meets objectives since RPO/RTO were defined on paper",
+    "Skip testing and proceed directly to a production cutover",
+    "Rely only on vendor documentation instead of testing their own environment"
+  ],
+  "correctIndex": 0,
+  "explanation": "RPO/RTO targets on paper mean nothing until the runbook is actually tested end-to-end, including how the application behaves through a real failover.",
+  "source": {
+    "path": "dp300/content/Plan and configure a high availability and disaster recovery (HA DR) environment/Plan an HA DR strategy for database solutions/README.md",
+    "heading": "Begin with business objectives",
+    "quote": "Test the runbook regularly. Include planned and unplanned failover, restore validation, application connection behavior, data consistency checks, and failback."
+  }
+},
+{
+  "id": "usecase-15",
+  "tier": "usecase",
+  "domain": "Plan and configure a high availability and disaster recovery (HA DR) environment",
+  "module": "Plan and perform backup and restore of a database",
+  "question": "A team accidentally deleted a large number of rows a few hours ago and needs to recover the database to just before that change, without losing more recent unrelated data. Which capability addresses this, and what does it depend on?",
+  "options": [
+    "Point-in-time restore, which depends on retention and log-chain health",
+    "A geo-replication failover, which depends on DNS propagation",
+    "Dynamic Data Masking, which depends on user permissions",
+    "Elastic Jobs, which depends on target-group membership"
+  ],
+  "correctIndex": 0,
+  "explanation": "Point-in-time restore is built for exactly this — rolling back to a moment before an accidental change — but it only works as far back as retention and an unbroken log chain allow.",
+  "source": {
+    "path": "dp300/content/Plan and configure a high availability and disaster recovery (HA DR) environment/Plan and perform backup and restore of a database/README.md",
+    "heading": "Design recoverability",
+    "quote": "Point-in-time restore uses the available backup history to return a database to a chosen time before a failure. It is useful for accidental changes but depends on retention and log-chain health."
+  }
+},
+{
+  "id": "usecase-16",
+  "tier": "usecase",
+  "domain": "Plan and configure a high availability and disaster recovery (HA DR) environment",
+  "module": "Configure HA DR for database solutions",
+  "question": "After a failover event completes successfully, what should the team do before considering the incident resolved?",
+  "options": [
+    "Validate data and application health after failover, and plan a safe failback rather than treating the role change as completion",
+    "Immediately decommission the original primary",
+    "Disable monitoring since the failover succeeded",
+    "Skip validation since failover groups are fully automated"
+  ],
+  "correctIndex": 0,
+  "explanation": "A completed role change isn't the same as a healthy application — validating data and connectivity, and planning a safe failback, is what actually closes out the incident.",
+  "source": {
+    "path": "dp300/content/Plan and configure a high availability and disaster recovery (HA DR) environment/Configure HA DR for database solutions/README.md",
+    "heading": "Select and configure the mechanism",
+    "quote": "During an incident, follow the tested runbook, validate data and application health after failover, and plan safe failback rather than treating the first successful role change as completion."
+  }
+},
+{
+  "id": "usecase-17",
+  "tier": "usecase",
+  "domain": "Plan and configure a high availability and disaster recovery (HA DR) environment",
+  "module": "Configure HA DR for database solutions",
+  "question": "A team needs readable secondary databases for reporting offload on Azure SQL Database, with coordinated failover for a group of related databases and predictable DNS behavior for client apps. Which combination of features fits best?",
+  "options": [
+    "Active geo-replication combined with failover groups",
+    "Failover Cluster Instances on Azure VMs",
+    "Log shipping to an on-premises secondary",
+    "Elastic Jobs distributing read queries across databases"
+  ],
+  "correctIndex": 0,
+  "explanation": "Active geo-replication supplies the readable secondaries, and failover groups add the coordinated, DNS-stable endpoint on top — together they cover both requirements.",
+  "source": {
+    "path": "dp300/content/Plan and configure a high availability and disaster recovery (HA DR) environment/Configure HA DR for database solutions/README.md",
+    "heading": "Select and configure the mechanism",
+    "quote": "Active geo-replication creates readable secondary databases for supported Azure SQL Database scenarios. Failover groups provide a listener-style endpoint and coordinated failover for a group of databases."
+  }
 }
 ];
