@@ -14,6 +14,7 @@ dba-lab/
 ├── lab-ag-&-cicd/     # SQL Server CI/CD with Always On Availability Groups
 ├── lab-octopus/       # Same schema, deployed through Octopus Deploy
 ├── dp800/             # DP-800 study notes (Microsoft Learn style modules)
+├── dp300/             # DP-300 study notes (official skills measured)
 └── .claude/           # Claude Code project config (skills, settings)
 ```
 
@@ -49,6 +50,12 @@ files where Microsoft provides them). Current domains:
 Use the `/dp800-quiz` skill (see below) to drill yourself on this content, or the
 static [`dp800/quiz/`](dp800/quiz/) web app below for a shareable, browser-based
 version.
+
+### [`dp300/`](dp300/)
+
+DP-300 study notes organized by the five official exam domains and fifteen objective
+groups. The [`dp300/content/`](dp300/content/) README contains the complete topic map
+for building out the lessons.
 
 ### [`dp800/quiz/`](dp800/quiz/)
 

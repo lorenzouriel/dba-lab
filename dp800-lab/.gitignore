@@ -1,8 +1,0 @@
-.env
-certs/*.crt
-restore/*.bak
-restore/*.BAK
-backups/*
-!backups/.gitkeep
-!restore/.gitkeep
-!certs/.gitkeep

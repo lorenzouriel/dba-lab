@@ -1,0 +1,101 @@
+# Explain IaaS options to deploy SQL Server in Azure
+
+Completed
+
+- 13 minutes
+
+Many applications require a VM running SQL Server. Some reasons for this option include:
+
+- **Older versions of SQL Server**—If an application requires an older version of SQL Server for vendor support, running inside a VM is the best option for those applications, because it allows for the application to be supported by that vendor.
+- **Use of other SQL Server services**—While Analysis Services and to an extent Integration Services (by using Azure Data Factory) are available as PaaS offerings, many users maximize their licensing by running SQL Server Analysis Services, Integration Services, or Reporting Services on the same machine as the database engine.
+- **General application incompatibility**—This reason is a somewhat of a catch-all. For example, Azure SQL Database doesn't support cross-database querying, while managed instance does. Some applications require other services to coexist with the database instance in a manner that isn't compatible with a PaaS offering.
+
+Infrastructure as a Service (IaaS) allows the administrator to have more granular access over specific settings of the underlying infrastructure than the other Azure offerings. While the Azure platform manages the underlying server and network hardware, you still have access to the virtual storage, virtual networking configuration, and any other software you might install within the virtual machine, including SQL Server.
+
+![Granularity of Control of SaaS, PaaS, and IaaS options](../../wwl-data-ai/deploy-iaas-solutions-with-azure-sql/media/module-22-plan-implement-final-01.png)
+
+The image illustrates the increased control you have using IaaS, compared to PaaS offerings. Note that while this diagram shows SaaS as a general cloud service model, Azure SQL offerings are either PaaS (such as Azure SQL Database and Azure SQL Managed Instance) or IaaS (SQL Server on Azure Virtual Machines).
+
+In Azure SQL PaaS offerings, the administrator is responsible for database management, user security, and data management, while Microsoft manages the operating system and SQL Server software. When you use Azure SQL PaaS services, the operating system (OS) and SQL Server software are managed by the cloud provider. A good example of this is Azure SQL Database where the operating system and database engine are installed and configured by Microsoft, allowing you to start building database applications quickly. IaaS solutions are the most open-ended; you're responsible for OS patching, SQL Server installation and configuration, and optimal configuration of your network and storage options. With an IaaS deployment, you're also responsible for software configuration.
+
+Some of your applications may not be suited for other Azure offerings, such as Azure SQL Database, because they require specific operating conditions. These conditions could include a specific combination of SQL Server and Windows versions for vendor support purposes, or other software that needs to be installed alongside of SQL Server. SQL Server paired with the Azure IaaS platform provides the required control options for many organizations, whether it be specific feature like CLR or replication, or the use of Active Directory (as opposed to Microsoft Entra ID) authentication. Another requirement is that some applications install software alongside SQL Server, which requires direct access to the underlying operating system. Direct access to the OS isn't supported in a PaaS model. These organizations and their applications can obtain the advantages of moving to a cloud service without losing critical capabilities that their organization requires.
+
+### SQL Server IaaS Agent Extension
+
+When you deploy an SQL Server VM from Azure Marketplace, part of the process installs the IaaS Agent Extension.
+
+Extensions are code that is executed on your VM post-deployment, typically to perform post-deployment configurations. Some examples include installing anti-virus software or enabling a Windows feature. The SQL Server IaaS Agent Extension provides the following main features that can reduce your administrative overhead.
+
+- **Automated backup**
+- **Automated patching**
+- **Azure Key Vault integration**
+- **Microsoft Defender for Cloud integration**
+- **View Disk utilization in the portal**
+- **Flexible licensing**
+- **Flexible version or edition**
+- **SQL best practices assessment**
+
+In addition to these features, the extension allows you to view information about your SQL Server's configuration and storage utilization.
+
+![Image of SQL Virtual Machine Configuration in Azure portal](../../wwl-data-ai/deploy-iaas-solutions-with-azure-sql/media/module-11-azure-dba-final-02.png)
+
+## SQL Server licensing models
+
+There are several different options related to how SQL Server is licensed when using the Azure IaaS offering.
+
+If you aren't participating in the Microsoft Software Assurance (SA) program, you can deploy an image from Azure Marketplace containing a preconfigured SQL Server, and pay-per-minute for the use of SQL Server. This option is referred to as the Pay as you Go model and the cost of the SQL Server license is included with the cost of the virtual machine.
+
+If you're participating in the Microsoft Software Assurance (SA) program, you have more flexibility in how you license your SQL Server:
+
+- You can use the previous method and pay-per-minute by deploying a virtual machine image containing a SQL Server from Azure Marketplace
+- You can Bring Your Own License (BYOL) when deploying the virtual machine that doesn't contain a preconfigured SQL Server instance. This option is possible when you already have purchased a valid SQL Server license for your on-premises infrastructure. This license can be applied to the virtual machine to ensure that you're properly licensed. You must report the usage of licenses to Microsoft by using the License Mobility verification form within 10 days of implementing the virtual machine.
+
+When choosing this method, you can manually install SQL Server through media you have obtained, or you can choose to upload a virtual machine image to Azure.
+
+In addition to flexible licensing options for SQL Server, there are also Windows Server licensing options that can be taken advantage of. These Windows Server options are known as the Azure Hybrid Benefit (AHB). Similar to applying a SQL Server license you already have purchased, you're able to take advantage of Windows Server licenses you already own.
+
+Reserving a virtual machine for one to three years provides another option for cost savings. This commitment doesn't require an upfront payment and can be billed monthly. Using the reservation option can be beneficial if you know the workloads are going to be persisted. The cost savings can be significant, especially for larger VMs.
+
+## Virtual machine families
+
+There are several series, or 'families,' of virtual machine sizes that you can choose. Each series is a combination of memory, CPU, and storage that meets certain requirements. For example, the series that are compute optimized have a higher CPU-to-memory ratio. Having multiple options allows you to select an appropriate hardware configuration for the expected workload. The following six series each has various sizes available, the details of which are fully described in the Azure portal when you choose the option to select your VM size.
+
+[General purpose](https://learn.microsoft.com/en-us/azure/virtual-machines/sizes/overview) - These VMs provide a balanced ratio of CPU to memory. This VM class is ideal for testing and development, small to medium-sized database servers, and web servers with a low to medium amount of traffic.
+
+[Compute optimized](https://learn.microsoft.com/en-us/azure/virtual-machines/sizes/overview) - Compute optimized VMs have a high CPU-to-memory ratio and are good for web servers with a medium amount of traffic, network appliances, batch processes, and application servers. These VMs can also support machine learning workloads that can't benefit from GPU-based VMs.
+
+[Memory optimized](https://learn.microsoft.com/en-us/azure/virtual-machines/sizes/overview) - These VMs provide a high memory-to-CPU ratio. These VMs cover a broad range of CPU and memory options (all the way up to 4 TB of RAM) and are well suited for most database workloads.
+
+[Storage optimized](https://learn.microsoft.com/en-us/azure/virtual-machines/sizes/overview) - Storage optimized VMs provide fast, local, NVMe storage that is ephemeral. They're good candidates for scale-out data workloads such as Cassandra. It's possible to use them with SQL Server; however, since the storage is ephemeral, you need to ensure you configure data protection using a feature like Always On Availability Groups or Log Shipping.
+
+[GPU](https://learn.microsoft.com/en-us/azure/virtual-machines/sizes/overview) - Azure VMs with GPUs are targeted at two main types of workloads—naturally graphics processing operations like video rendering and processing, but also massively parallel machine learning workloads that can take advantage of GPUs.
+
+[FPGA accelerated](https://learn.microsoft.com/en-us/azure/virtual-machines/sizes/overview) - These sizes are designed for compute-intensive workloads. Storage throughput and network bandwidth are also included for each size in this group.
+
+[High performance compute](https://learn.microsoft.com/en-us/azure/virtual-machines/sizes/overview) - High Performance Compute workloads support applications that can scale horizontally to thousands of CPU cores. This support is provided by high-performance CPU and remote direct memory access (RDMA) networking that provides low latency communications between VMs.
+
+The easiest way to see the sizing options within each series is through the Azure portal. From the blade for creating a VM, you select the option **See all sizes** to see the list.
+
+![A Partial list of the VM sizes available through the Azure portal](../../wwl-data-ai/deploy-iaas-solutions-with-azure-sql/media/module-22-plan-implement-final-02.png)
+
+The image above shows just a small set of the series and size possibilities. For each option, you can see the number of Virtual CPUs, the amount of RAM, the number of Data disks, the Max IOPS, the temporary storage provided and whether Premium storage is supported.
+
+For more information about VM size best practices, see [Best practices for SQL Server on Azure VMs](https://learn.microsoft.com/en-us/azure/azure-sql/virtual-machines/windows/performance-guidelines-best-practices-checklist).
+
+## Azure Marketplace
+
+Azure Marketplace is essentially a centralized location that provides the ability to create Azure resources based on a predesigned template. For example, you can quickly create a SQL Server 2022 instance on Windows Server 2019 with a couple of clicks, along with some basic information, such as the virtual machine name and SQL Server configuration details. Once provided, Azure Resource Manager initiates the creation of the virtual machine, and within minutes it's up and running.
+
+The blade for SQL Server 2019 on Windows Server 2019 in Azure Marketplace is shown below. This blade gives you the option of preset configurations that support OLTP or Data Warehouse workloads and allows you to specify storage, patching, and backup options.
+
+![SQL Server VM Creation from Azure Marketplace](../../wwl-data-ai/deploy-iaas-solutions-with-azure-sql/media/module-11-azure-dba-final-01.png)
+
+The disadvantage of using the portal to create Azure resources is that it isn't an easily repeatable process. However, it's easy to get started with the portal, where you can quickly get up and running with resources.
+
+## SQL Server configuration
+
+When you provision an Azure virtual machine running SQL Server, you can also configure specific SQL Server settings, such as Security and Networking, SQL Authentication preferences, SQL instance settings, and a few other options. These options are located on the **SQL Server settings** tab.
+
+![SQL Server settings tab when creating a SQL Server virtual machine](../../wwl-data-ai/deploy-iaas-solutions-with-azure-sql/media/dp-3300-module-11-lab-51.png)
+
+For more information about the SQL Server settings available when creating a virtual machine, see [Provision SQL Server on Azure VM (Azure portal)](https://learn.microsoft.com/en-us/azure/azure-sql/virtual-machines/windows/create-sql-vm-portal).
