@@ -3,53 +3,76 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>DP-800 Practice Quiz</title>
-<meta name="description" content="100 practice questions for the DP-800 database-solutions study notes, with explanations linked back to the source lesson.">
+<title>DBA Lab Practice Quiz</title>
+<meta name="description" content="Practice questions for the DP-300, DP-800, and DP-900 study notes, with explanations linked back to the source lesson.">
 <link rel="stylesheet" href="styles.css">
 </head>
-<body data-screen="start">
+<body data-screen="exam">
 
 <div class="app">
 
   <header class="app-header">
     <div class="brand">
       <span class="brand-mark" aria-hidden="true">DP</span>
-      <span class="brand-name">DP-800 Practice Quiz</span>
+      <span class="brand-name">DBA Lab Practice Quiz</span>
     </div>
   </header>
 
   <main class="app-main">
 
+    <!-- EXAM SELECT SCREEN -->
+    <section class="screen screen-exam" id="screen-exam">
+      <div class="card card-exam">
+        <h1>Which exam are you studying for?</h1>
+        <p class="lede">Pick an exam to practice with questions sourced from its study notes.</p>
+
+        <div class="exam-grid" id="exam-grid" role="radiogroup" aria-label="Choose an exam">
+          <button class="exam-card" data-exam="dp300">
+            <span class="exam-title">DP-300</span>
+            <span class="exam-subtitle">Administering Microsoft SQL Server on-premises and in Azure</span>
+            <span class="exam-count"></span>
+          </button>
+          <button class="exam-card" data-exam="dp800">
+            <span class="exam-title">DP-800</span>
+            <span class="exam-subtitle">Implementing and Managing DBA on Microsoft Azure SQL</span>
+            <span class="exam-count"></span>
+          </button>
+          <button class="exam-card" data-exam="dp900">
+            <span class="exam-title">DP-900</span>
+            <span class="exam-subtitle">Microsoft Azure Data Fundamentals</span>
+            <span class="exam-count"></span>
+          </button>
+        </div>
+      </div>
+    </section>
+
     <!-- START SCREEN -->
     <section class="screen screen-start" id="screen-start">
       <div class="card card-start">
-        <h1>Test your DP-800 knowledge</h1>
-        <p class="lede">
-          100 questions drawn straight from the <code>dp800/</code> study notes &mdash;
-          28 easy, 28 medium, 27 hard, and 17 applied use cases. Every answer links
-          back to the exact lesson it came from.
-        </p>
+        <button class="btn-back" id="back-to-exam-btn" title="Choose a different exam" aria-label="Choose a different exam">&larr; Change exam</button>
+        <h1 id="start-title">Test your knowledge</h1>
+        <p class="lede" id="start-lede"></p>
 
         <div class="mode-grid" id="mode-grid" role="radiogroup" aria-label="Choose a question set">
           <button class="mode-card" data-mode="all">
             <span class="mode-title">All questions</span>
-            <span class="mode-count">100</span>
+            <span class="mode-count" id="count-all">100</span>
           </button>
           <button class="mode-card" data-mode="easy">
             <span class="mode-title tier-easy">Easy</span>
-            <span class="mode-count">28</span>
+            <span class="mode-count" id="count-easy">28</span>
           </button>
           <button class="mode-card" data-mode="medium">
             <span class="mode-title tier-medium">Medium</span>
-            <span class="mode-count">28</span>
+            <span class="mode-count" id="count-medium">28</span>
           </button>
           <button class="mode-card" data-mode="hard">
             <span class="mode-title tier-hard">Hard</span>
-            <span class="mode-count">27</span>
+            <span class="mode-count" id="count-hard">27</span>
           </button>
           <button class="mode-card" data-mode="usecase">
             <span class="mode-title tier-usecase">Use cases</span>
-            <span class="mode-count">17</span>
+            <span class="mode-count" id="count-usecase">17</span>
           </button>
           <button class="mode-card" data-mode="custom">
             <span class="mode-title">Custom mix</span>
@@ -148,14 +171,16 @@
       </a>
     </div>
     <p>
-      Built from <a href="https://github.com/lorenzouriel/dba-lab/tree/main/dp800" target="_blank" rel="noopener">dp800/ study notes</a>
+      Built from <a id="footer-source-link" href="https://github.com/lorenzouriel/dba-lab/tree/main/dp800" target="_blank" rel="noopener">study notes</a>
       &middot; <a href="https://github.com/lorenzouriel/dba-lab" target="_blank" rel="noopener">dba-lab on GitHub</a>
     </p>
   </footer>
 
 </div>
 
-<script src="questions.js"></script>
+<script src="data/dp300.js"></script>
+<script src="data/dp800.js"></script>
+<script src="data/dp900.js"></script>
 <script src="app.js"></script>
 </body>
 </html>

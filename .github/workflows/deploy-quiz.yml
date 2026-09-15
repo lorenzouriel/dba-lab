@@ -1,10 +1,10 @@
-name: Deploy DP-800 quiz to GitHub Pages
+name: Deploy practice quiz to GitHub Pages
 
 on:
   push:
     branches: [main]
     paths:
-      - "dp800/quiz/**"
+      - "quiz/**"
       - ".github/workflows/deploy-quiz.yml"
   workflow_dispatch:
 
@@ -32,7 +32,7 @@ jobs:
       - name: Upload quiz app as Pages artifact
         uses: actions/upload-pages-artifact@v3
         with:
-          path: dp800/quiz
+          path: quiz
 
       - name: Deploy to GitHub Pages
         id: deployment

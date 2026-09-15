@@ -1,0 +1,15 @@
+# Summary
+
+Completed
+
+- 3 minutes
+
+In our bike manufacturing scenario, you created and executed a plan to migrate your servers to Azure SQL Database using both offline and online methods.
+
+Now, with the migration complete, your users have the best availability and scalability for their data and you're confident that you can respond to future changes in demand quickly. The method chosen to migrate the database is typically dependent on how much time the SQL Server databases can be offline.
+
+For additional reading, you can refer to the following resources:
+
+- [Migration overview: SQL Server to Azure SQL Database](/en-us/azure/azure-sql/migration-guides/database/sql-server-to-sql-database-overview)
+- [Azure Database Migration Service](/en-us/azure/dms/dms-overview)
+- [Transactional Replication with Azure SQL Database](/en-us/azure/sql-database/sql-database-managed-instance-transactional-replication)

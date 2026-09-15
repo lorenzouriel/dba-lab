@@ -8,12 +8,40 @@
     usecase: "Use case",
   };
 
+  const EXAMS = {
+    dp300: {
+      name: "DP-300",
+      title: "Test your DP-300 knowledge",
+      folder: "dp300",
+      questions: typeof DP300_QUESTIONS !== "undefined" ? DP300_QUESTIONS : [],
+    },
+    dp800: {
+      name: "DP-800",
+      title: "Test your DP-800 knowledge",
+      folder: "dp800",
+      questions: typeof DP800_QUESTIONS !== "undefined" ? DP800_QUESTIONS : [],
+    },
+    dp900: {
+      name: "DP-900",
+      title: "Test your DP-900 knowledge",
+      folder: "dp900",
+      questions: typeof DP900_QUESTIONS !== "undefined" ? DP900_QUESTIONS : [],
+    },
+  };
+
   const REPO_BLOB_BASE = "https://github.com/lorenzouriel/dba-lab/blob/main/";
+  const REPO_TREE_BASE = "https://github.com/lorenzouriel/dba-lab/tree/main/";
   const LETTERS = ["A", "B", "C", "D"];
 
   const body = document.body;
 
   // ---- elements ----
+  const examGrid = document.getElementById("exam-grid");
+  const backToExamBtn = document.getElementById("back-to-exam-btn");
+  const startTitle = document.getElementById("start-title");
+  const startLede = document.getElementById("start-lede");
+  const footerSourceLink = document.getElementById("footer-source-link");
+
   const modeGrid = document.getElementById("mode-grid");
   const customPanel = document.getElementById("custom-panel");
   const shuffleQuestionsEl = document.getElementById("shuffle-questions");
@@ -46,6 +74,7 @@
 
   // ---- state ----
   const state = {
+    exam: null,
     mode: null,
     pool: [],      // array of { q: <original question object>, options: [...], correctIndex }
     index: 0,
@@ -65,16 +94,77 @@
     return REPO_BLOB_BASE + path.split("/").map(encodeURIComponent).join("/");
   }
 
-  function buildPool(mode, tiers) {
-    let questions;
-    if (mode === "all") {
-      questions = QUIZ_QUESTIONS.slice();
-    } else if (mode === "custom") {
-      questions = QUIZ_QUESTIONS.filter((q) => tiers.includes(q.tier));
-    } else {
-      questions = QUIZ_QUESTIONS.filter((q) => q.tier === mode);
+  function tierCounts(questions) {
+    const counts = { easy: 0, medium: 0, hard: 0, usecase: 0 };
+    questions.forEach((q) => {
+      if (counts[q.tier] !== undefined) counts[q.tier] += 1;
+    });
+    return counts;
+  }
+
+  // ---- exam selection screen ----
+
+  Object.keys(EXAMS).forEach((examId) => {
+    const exam = EXAMS[examId];
+    const btn = examGrid.querySelector(`[data-exam="${examId}"]`);
+    if (btn) {
+      const countEl = btn.querySelector(".exam-count");
+      if (countEl) countEl.textContent = exam.questions.length + " questions";
     }
-    return questions;
+  });
+
+  examGrid.addEventListener("click", (e) => {
+    const btn = e.target.closest(".exam-card");
+    if (!btn || btn.disabled) return;
+    selectExam(btn.dataset.exam);
+  });
+
+  function selectExam(examId) {
+    const exam = EXAMS[examId];
+    if (!exam) return;
+    state.exam = examId;
+
+    const counts = tierCounts(exam.questions);
+    const total = exam.questions.length;
+
+    startTitle.textContent = exam.title;
+    startLede.innerHTML =
+      `${total} questions drawn straight from the <code>${exam.folder}/</code> study notes &mdash; ` +
+      `${counts.easy} easy, ${counts.medium} medium, ${counts.hard} hard, and ${counts.usecase} applied use cases. ` +
+      `Every answer links back to the exact lesson it came from.`;
+
+    document.getElementById("count-all").textContent = total;
+    document.getElementById("count-easy").textContent = counts.easy;
+    document.getElementById("count-medium").textContent = counts.medium;
+    document.getElementById("count-hard").textContent = counts.hard;
+    document.getElementById("count-usecase").textContent = counts.usecase;
+
+    footerSourceLink.href = REPO_TREE_BASE + exam.folder;
+    footerSourceLink.textContent = exam.folder + "/ study notes";
+
+    // reset mode selection back to "all"
+    selectedMode = "all";
+    [...modeGrid.querySelectorAll(".mode-card")].forEach((c) =>
+      c.classList.toggle("selected", c.dataset.mode === "all")
+    );
+    customPanel.hidden = true;
+
+    body.dataset.screen = "start";
+    showLastScore();
+  }
+
+  backToExamBtn.addEventListener("click", () => {
+    body.dataset.screen = "exam";
+  });
+
+  function buildPool(mode, tiers) {
+    const questions = EXAMS[state.exam].questions;
+    if (mode === "all") {
+      return questions.slice();
+    } else if (mode === "custom") {
+      return questions.filter((q) => tiers.includes(q.tier));
+    }
+    return questions.filter((q) => q.tier === mode);
   }
 
   function instantiatePool(questions, shuffleQ, shuffleA) {
@@ -103,22 +193,19 @@
     customPanel.hidden = selectedMode !== "custom";
   });
 
-  // preselect "all"
-  modeGrid.querySelector('[data-mode="all"]').classList.add("selected");
-
   function currentCustomTiers() {
     return [...customPanel.querySelectorAll('input[type="checkbox"]:checked')].map(
       (c) => c.value
     );
   }
 
-  function lastScoreKey(mode) {
-    return "dp800quiz:lastScore:" + mode;
+  function lastScoreKey(examId, mode) {
+    return "dbalabquiz:lastScore:" + examId + ":" + mode;
   }
 
   function showLastScore() {
     try {
-      const raw = localStorage.getItem(lastScoreKey(selectedMode));
+      const raw = localStorage.getItem(lastScoreKey(state.exam, selectedMode));
       if (!raw) {
         lastScoreEl.hidden = true;
         return;
@@ -132,7 +219,6 @@
   }
 
   modeGrid.addEventListener("click", showLastScore);
-  showLastScore();
 
   startBtn.addEventListener("click", () => {
     const tiers = selectedMode === "custom" ? currentCustomTiers() : null;
@@ -250,7 +336,7 @@
 
     try {
       localStorage.setItem(
-        lastScoreKey(state.mode),
+        lastScoreKey(state.exam, state.mode),
         JSON.stringify({
           score: correctCount,
           total,
