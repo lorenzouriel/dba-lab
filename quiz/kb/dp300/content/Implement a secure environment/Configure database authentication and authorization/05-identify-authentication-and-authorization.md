@@ -1,0 +1,64 @@
+# Identify authentication and authorization failures
+
+Completed
+
+- 5 minutes
+
+A connection failure can result from reconfiguration, firewall settings, connection timeouts, or incorrect login information. Furthermore, if some Azure SQL Database or SQL Managed Instance resources are over capacity, you won't be able to connect.
+
+## Transient fault
+
+When heavy workloads increase in the SQL Database service, the Azure infrastructure is able to dynamically reconfigure servers, and the client application may lose connection to the database during this operation.
+
+Transient faults occur during database reconfiguration of a planned event or an unplanned event. These events are brief and shouldn't take longer than 60 seconds to complete.
+
+Here's a list of a few transient errors that applications may receive when connecting to Azure SQL Database:
+
+- Can't open database "%.*ls" requested by the login. The login failed.
+- Can't process request. Not enough resources to process request.
+- Can't process request. Too many operations in progress for subscription "%ld".
+
+> **Note**
+>
+> For a complete list of transient errors, see [Troubleshooting connectivity issues and other errors with Azure SQL Database and Azure SQL Managed Instance](/en-us/azure/azure-sql/database/troubleshoot-common-errors-issues#list-of-transient-fault-error-codes).
+
+### How to monitor transient connectivity errors
+
+| Error | Action |
+| --- | --- |
+| **Login failures** | Look for any outages during the time when the application reported the errors at Microsoft Azure Service Dashboard. |
+| **Database reaches resource limits** | Monitor your database's compute and storage resources carefully, and take action when it reaches its resource limits to prevent transient failures. |
+| **Extended authentication failures** | File an Azure support request through the Azure portal if your application encounters connectivity error for longer than 60 seconds or if it occurs more than once in a given day. |
+
+## Retry logic
+
+Application developers should anticipate periodic transient failures when integrating with cloud services, like Azure SQL Database, and implement a retry logic instead of displaying application errors to users. It's important to set a maximum number of retries before the program terminates.
+
+We recommend waiting for 5 seconds at a minimum on your first retry. Each subsequential retry should increase the delay exponentially, up to a maximum of 60 seconds.
+
+> **Note**
+>
+> If a `SELECT` statement fails with a transient error in SQL Database or SQL Managed Instance, avoid directly retrying it. Instead, retry the `SELECT` statement using a new connection.
+
+## Unable to log in to the server
+
+When the error **Login failed for user '< User name >'** happens, the service administrator can follow the following steps:
+
+1. Check if the login is disabled by using the `sys.sql_logins` catalog view.
+2. If the login is disabled, run `ALTER LOGIN <User name> ENABLE;` to enable it.
+3. If the login doesn't exist, create it using the `CREATE LOGIN` statement.
+4. Connect to the database you want to grant the user access to, and run the `CREATE USER` statement.
+5. Either assign the user a role using the `ALTER ROLE` command, or grant the user access to one or more database objects using the `GRANT` command.
+
+## Connection string
+
+When you receive connectivity errors, it's a good practice to make sure your connection string is working properly. This is mostly important when provisioning a new database, or after making infrastructure changes to a database service.
+
+The Azure portal allows you to retrieve the connection string you need to interact with Azure SQL Database.
+
+1. From the Azure portal, select **All services**, and then **SQL databases**. Filter and select your database.
+2. On the blade for your database, select **Connection strings**.
+3. Copy and edit the connection string by including your password, or replacing the server name as needed.
+4. Reference the connection string updated in the client application.
+
+To learn more about connectivity errors for Azure SQL Database and Azure SQL Managed Instance, see [Troubleshooting connectivity issues and other errors with Azure SQL Database and Azure SQL Managed Instance](/en-us/azure/azure-sql/database/troubleshoot-common-errors-issues?azure-portal=true).

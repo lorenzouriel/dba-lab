@@ -1,0 +1,11 @@
+# Introduction
+
+Completed
+
+- 15 minutes
+
+One of the most crucial skills to acquire in database performance tuning is the ability to read and understand query execution plans. These plans provide detailed insights into the behavior of the database engine as it executes queries and retrieves results. By analyzing execution plans, you can identify inefficiencies, optimize query performance, and ensure that your database runs smoothly.
+
+The Query Store is an invaluable tool for quickly identifying your most expensive queries and tracking changes in performance over time. It offers comprehensive data collection, including automated query plan and execution runtime analysis. This allows you to pinpoint performance bottlenecks and make informed decisions to improve query efficiency.
+
+SQL Server implements locking and blocking mechanisms to manage concurrency and ensure data consistency. These mechanisms prevent conflicts and maintain the integrity of your data when multiple users access the database simultaneously. Also, you can adjust isolation levels in SQL Server to fine-tune concurrency management. By selecting the appropriate isolation level, you can balance the trade-offs between data consistency and performance, ensuring that your database operates optimally under various workloads.

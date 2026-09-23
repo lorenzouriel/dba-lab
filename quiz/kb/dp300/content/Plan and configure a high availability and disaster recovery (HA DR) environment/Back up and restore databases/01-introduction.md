@@ -1,0 +1,9 @@
+# Introduction
+
+Completed
+
+- 1 minute
+
+Planning and implementing a robust policy for data recovery is essential to mitigate the risks associated with user errors or technology failures. This involves exploring various options for backing up and restoring databases, including on-site and off-site solutions, cloud-based services, and automated backup systems. By understanding the different methods for data back up and recovery, organizations can safeguard their critical information and maintain operational continuity in the face of unforeseen challenges.
+
+Even if you do nothing else to increase your availability with features like AGs or active geo-replication, you must have a solid backup and recovery strategy.

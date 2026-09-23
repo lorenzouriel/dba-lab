@@ -1,0 +1,156 @@
+# Implement Microsoft Purview
+
+Completed
+
+- 15 minutes
+
+Microsoft Purview is a unified data governance service that helps you manage and govern your on-premises, multicloud, and software-as-a-service (SaaS) data. Create a holistic, up-to-date map of your data landscape with automated data discovery, sensitive data classification, and end-to-end data lineage. Enable data curators to manage and secure your data estate. Empower data consumers to find valuable, trustworthy data.
+
+## How it works
+
+Microsoft Purview automates data discovery by providing data scanning and classification as a service for assets across your data estate. Metadata and descriptions of discovered data assets are integrated into a holistic map of your data estate. Atop this map, there are purpose-built apps that create environments for data discovery, access management, and insights about your data landscape.
+
+## Supported capabilities
+
+Understanding the location and movement of sensitive data across the entire data domain is one of the main features of Microsoft Purview for Azure SQL Database.
+
+### Create a unified map of data across the entire data domain
+
+Microsoft Purview helps you lay the foundation for effective data management, including the following capabilities:
+
+- Automate and manage hybrid resource metadata.
+- Classify data using integrated and custom classifications and information protection sensitivity labels.
+- Ensure consistent labeling of sensitive data across SQL Server, Azure, Microsoft 365, and Power BI.
+- Easily integrate all your data systems using Apache Atlas APIs.
+
+### Make data easy to find
+
+Make data easy to find using familiar business and technical search terms, including the following capabilities:
+
+- Ensure optimal business value for your data users' data with Microsoft Purview Data Catalog.
+- Eliminate the need for data dictionaries in Excel with a business-level business dictionary.
+- Gain insight into the origin of your data with interactive visualization of data origin.
+- Provide data scientists, engineers, and analysts with the data they need for BI, analytics, AI, and machine learning.
+
+### Get an overview of sensitive data
+
+Microsoft Purview provides a comprehensive view of your data management operations with Data Insights (in preview), including the following capabilities:
+
+- View your entire data domain and its distribution by asset dimension, such as source type, classification, and file size.
+- Receive status updates on the number of scans that passed, failed, or canceled.
+- Get key insights to add or redistribute glossary terms for better search results.
+
+## Requirements
+
+Before you get started with Microsoft Purview, ensure the following requirements are met:
+
+- Access to Microsoft Azure with a development or production subscription.
+- Ability to create Azure resources including Microsoft Purview.
+- Access to data sources such as Azure Data Lake Storage or Azure SQL in test, development, or production environments.
+    - For Data Lake Storage, the required role to scan is **Reader**.
+    - For Azure SQL, the identity must be able to query tables for sampling of classifications.
+- Access to Microsoft Defender for Cloud or ability to collaborate with Defender for Cloud Admin for data labeling.
+- An active Microsoft Purview account.
+- You need to be a **Data Source Administrator** and **Data Reader** to register a source and manage it in the Microsoft Purview governance portal.
+
+## Security considerations
+
+Let's review some important security capabilities when scanning a SQL Database using Microsoft Purview.
+
+### Firewall settings
+
+If your database server has a firewall enabled, you need to update the firewall to allow access in one of two ways:
+
+- **Allow Azure connections through the firewall –** A straightforward option to route traffic through Azure networking, without needing to manage virtual machines.
+- **Install a self-hosted integration runtime –** Install a self-hosted integration runtime on a machine in your network and give it access through the firewall. If you have a private virtual network set up within Azure, or have any other closed network set up, using a self-hosted integration runtime on a machine within that network will allow you to fully manage traffic flow and utilize your existing network.
+- **Use a managed virtual network –** You can use the Azure integration runtime in a closed network by setting up a managed virtual network using your Microsoft Purview account to connect to Azure SQL.
+
+### Authentication
+
+To scan your data source, you need to configure an authentication method in the Azure SQL Database. The following authentication options are supported when preparing for a scan:
+
+- **System-assigned managed identity (recommended) –** This is an identity associated directly with your Microsoft Purview account that allows you to authenticate directly with other Azure resources without needing to manage a go-between user or credential set. The system-assigned managed identity is created when your Microsoft Purview resource is created, is managed by Azure, and uses your Microsoft Purview account's name. The system-assigned managed identity can't currently be used with a self-hosted integration runtime for Azure SQL.
+- **User-assigned managed identity (preview) –** Similar to system-assigned managed identity, a user-assigned managed identity is a credential resource that allows Microsoft Purview to authenticate against Microsoft Entra ID. The user-assigned managed by users in Azure, rather than by Azure itself, which gives you more control over security. The user-assigned managed identity can't currently be used with a self-hosted integration runtime for Azure SQL. For more information, see our guide for user-assigned managed identities.
+- **Service Principal –** A service principal is an application that can be assigned permissions like any other group or user, without being associated directly with a person. Their authentication has an expiration date, and so can be useful for temporary projects.
+- **SQL Authentication –** Connect to the SQL database with a username and password.
+
+> **Note**
+>
+> If you're using a self-hosted integration runtime to connect to your resource, system-assigned and user-assigned managed identities won't work. You need to use service principal authentication or SQL authentication.
+
+## Register and scan SQL Database using Microsoft Purview
+
+This section enables you to register the Azure SQL Database data source and set up a scan.
+
+### Register the data source
+
+It's required to register the data source in Microsoft Purview before setting up a scan.
+
+1. Open your Microsoft Purview account, and select **Open Microsoft Purview Governance Portal**.
+2. Select **Data Map** > **Collections** from the left pane to open collection management page. Create the collection hierarchy using the **Collections** menu, and assign permissions to individual subcollections, as required.
+3. Navigate to the appropriate collection under the **Sources** menu, and then select **Register** to register a new SQL Database.
+4. Select the Azure SQL Database data source, and then select **Continue**.
+5. Provide a name for the data source, select an Azure subscription, select the SQL Database server name, and then select **Apply**.
+6. The Azure SQL Database appears under the selected collection.
+
+### Create a scan
+
+To create and set up a scan, follow these steps:
+
+1. Open your Microsoft Purview account and select the **Open Microsoft Purview** governance portal.
+2. Select the **Data map** icon, then **Sources** to view the collection hierarchy.
+3. Select the **New Scan** icon under the Azure SQL Database registered earlier.
+4. Provide a name for the scan, select **Enter manually** for **Database selection method** property, enter the **Database name**, and select the **Credential**. Choose the appropriate collection for the scan, and select **Test connection** to validate the connection. If the connection is successful, select **Continue**.
+
+### Scope and run the scan
+
+To scope and run the scan, follow these steps:
+
+1. You can scope your scan to specific database objects by choosing the appropriate items in the list.
+2. Select a scan rule set. You can choose between the system default, existing custom rule sets, or create a new rule set inline.
+3. Select **New scan rule set**, and provide a new scan rule set name.
+4. You can then select the classification rules to be included in the scan rule, and then select **Create**.
+5. The **Select a scan rule set** page will the scan rule set you've created.
+6. On the **Set a scan trigger** page, configure your scan trigger. Select **Continue**.
+7. Review your scan, and then select **Save and run**.
+
+## Data lineage
+
+Generally, data lineage represents the journey the data takes from its origin to where it moves across the data estate over time. Among its many uses are troubleshooting, tracing the root cause in data pipelines, and debugging.
+
+Microsoft Purview Data Catalog connects with other data storage, processing, and analytics platforms to collect lineage information. As a result, the Catalog contains a generic, scenario-specific lineage experience.
+
+Microsoft Purview supports data lineage from Azure SQL Database. At the time of setting up a scan, you can enable lineage extraction toggle button to extract lineage information.
+
+### Prerequisites for setting up scan with Lineage extraction
+
+1. Follow steps under authentication for a scan using Managed Identity section to authorize Microsoft Purview scan your Azure SQL Database.
+2. Sign in to Azure SQL Database with Microsoft Entra account and assign proper permission (for example: **db_owner**) to Purview Managed identity. Use below example SQL syntax to create user and grant permission by replacing *purview-account* with your account name.
+
+    ```sql
+    CREATE user <purview-account> FROM EXTERNAL PROVIDER
+    GO
+    EXEC sp_addrolemember 'db_owner', <purview-account> 
+    GO
+    ```
+
+3. Run below command on your Azure SQL Database to create a master key.
+
+    ```sql
+    CREATE MASTER KEY
+    GO
+    ```
+
+### Create scan with lineage extraction toggle turned on
+
+1. Enable lineage extraction toggle in the scan screen.
+2. Select your method of authentication by following steps in the scan section.
+3. Once the scan is successfully set up from previous step, a new scan type called Lineage extraction runs incremental scans every 6 hours to extract lineage from Azure SQL Database. Lineage is extracted based on the actual stored procedure runs in the Azure SQL Database.
+
+### Search Azure SQL Database assets and view runtime lineage
+
+You can browse the data catalog or search the data catalog to view asset details for Azure SQL Database following the steps below:
+
+1. Go to asset -> lineage tab, you can see the asset lineage when applicable. Refer to the supported capabilities section on the supported Azure SQL Database lineage scenarios. For more information about lineage in general, see data lineage and lineage user guide.
+2. Go to stored procedure asset -> Properties -> Related assets to see the latest run details of stored procedures.
+3. Select the stored procedure hyperlink next to Runs to see Azure SQL Stored Procedure Run Overview. Go to properties tab to see enhanced run time information from stored procedure. For example: executedTime, rowcount, Client Connection, and so on.
