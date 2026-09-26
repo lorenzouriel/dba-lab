@@ -68,7 +68,6 @@
     <Build Include="Security\finance.sql" />
     <Build Include="Security\plan.sql" />
     <Build Include="Security\reporting.sql" />
-    <Build Include="Security\investment.sql" />
     <Build Include="Security\body.sql" />
     <Build Include="Security\mind.sql" />
   </ItemGroup>
@@ -80,9 +79,6 @@
     <Build Include="Tables\finance.expenses.sql" />
     <Build Include="Tables\finance.investments.sql" />
     <Build Include="Tables\finance.bills.sql" />
-    <Build Include="Tables\investment.stocks.sql" />
-    <Build Include="Tables\investment.cryptos.sql" />
-    <Build Include="Tables\investment.currencies.sql" />
     <Build Include="Tables\body.weekly_routines.sql" />
     <Build Include="Tables\body.workouts.sql" />
     <Build Include="Tables\body.personal_records.sql" />
@@ -90,6 +86,10 @@
     <Build Include="Tables\body.water_intake.sql" />
     <Build Include="Tables\body.body_metrics.sql" />
     <Build Include="Tables\body.sleep_logs.sql" />
+    <Build Include="Tables\body.habits.sql" />
+    <Build Include="Tables\body.habit_logs.sql" />
+    <Build Include="Tables\body.substance_logs.sql" />
+    <Build Include="Tables\body.symptom_logs.sql" />
     <Build Include="Tables\mind.meditation_sessions.sql" />
     <Build Include="Tables\mind.journal_entries.sql" />
   </ItemGroup>

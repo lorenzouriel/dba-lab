@@ -90,7 +90,7 @@ services:
     restart: "no"
 
   # -------------------------------------------------------------- prod2
-  # AG secondary, read-only. `docker compose --profile ha up -d`.
+  # AG secondary, synchronous-commit, read-only. `docker compose --profile ha up -d`.
   prod2:
     profiles: ["ha"]
     image: mcr.microsoft.com/mssql/server:2025-latest
@@ -112,6 +112,41 @@ services:
       - ./backups:/var/opt/mssql/backups
       - ag-certs:/var/opt/mssql/ag-certs
     mem_limit: ${PROD2_MEM_LIMIT:-6g}
+    healthcheck:
+      test:
+        - CMD-SHELL
+        - /opt/mssql-tools18/bin/sqlcmd -S localhost -U sa -P "$$MSSQL_SA_PASSWORD" -C -b -Q "SELECT 1" || exit 1
+      interval: 10s
+      timeout: 5s
+      retries: 10
+      start_period: 90s
+
+  # -------------------------------------------------------------- prod3
+  # AG secondary, asynchronous-commit, read-scale-only — not a synchronous HA
+  # partner like prod2, just extra read capacity (see Use case 2b). Joined to
+  # the AG separately via `ag-add-prod3` since it's added after the fact.
+  # `docker compose --profile ha up -d prod3`.
+  prod3:
+    profiles: ["ha"]
+    image: mcr.microsoft.com/mssql/server:2025-latest
+    hostname: prod3
+    restart: unless-stopped
+    environment:
+      ACCEPT_EULA: "Y"
+      MSSQL_PID: Developer
+      MSSQL_SA_PASSWORD: ${MSSQL_SA_PASSWORD}
+      MSSQL_AGENT_ENABLED: "true"
+      MSSQL_MEMORY_LIMIT_MB: ${PROD3_MEMORY_LIMIT_MB:-4096}
+      MSSQL_COLLATION: ${MSSQL_COLLATION:-SQL_Latin1_General_CP1_CI_AS}
+      MSSQL_ENABLE_HADR: "1"
+      TZ: ${TZ:-America/Sao_Paulo}
+    ports:
+      - "${PROD3_PORT:-1405}:1433"
+    volumes:
+      - prod3-data:/var/opt/mssql
+      - ./backups:/var/opt/mssql/backups
+      - ag-certs:/var/opt/mssql/ag-certs
+    mem_limit: ${PROD3_MEM_LIMIT:-6g}
     healthcheck:
       test:
         - CMD-SHELL
@@ -165,6 +200,39 @@ services:
       - DBNAME=${AGDB:-agdb}
       - -i
       - /scripts/20-ag-setup.sql
+    restart: "no"
+
+  # ----------------------------------------------------- ag-add-prod3 (opt)
+  # `docker compose --profile ha run --rm ag-add-prod3` — run once, after
+  # `ag-setup` has already created ag1 on prod1+prod2. Adds prod3 as a third,
+  # asynchronous-commit, read-only replica and folds it into read-only
+  # routing alongside prod2.
+  ag-add-prod3:
+    profiles: ["ha"]
+    image: mcr.microsoft.com/mssql/server:2025-latest
+    depends_on:
+      prod1:
+        condition: service_healthy
+      prod2:
+        condition: service_healthy
+      prod3:
+        condition: service_healthy
+    volumes:
+      - ./scripts:/scripts:ro
+    entrypoint:
+      - /opt/mssql-tools18/bin/sqlcmd
+      - -S
+      - prod1
+      - -U
+      - sa
+      - -P
+      - ${MSSQL_SA_PASSWORD}
+      - -C
+      - -b
+      - -v
+      - SAPW=${MSSQL_SA_PASSWORD}
+      - -i
+      - /scripts/21-ag-add-prod3.sql
     restart: "no"
 
   # ---------------------------------------------------------------- dev
@@ -282,22 +350,43 @@ services:
     restart: "no"
 
   # --------------------------------------------------------------- datagen
-  # fin_pulse test data generator: 10 heavily-active users by default (see
-  # data_gen/README.md).
+  # fin_pulse test data generator: 50 heavily-active users / 365 days by
+  # default (see data_gen/README.md). One-shot commands via `run --rm`.
   # `docker compose --profile datagen run --rm datagen backfill --target dev`
-  # `docker compose --profile datagen run --rm datagen backfill --target dev --users 25 --days 180 --reset`
+  # `docker compose --profile datagen run --rm datagen backfill --target dev --users 100 --days 365 --reset`
   datagen:
     profiles: ["datagen"]
     build: ./data_gen
     environment:
       MSSQL_SA_PASSWORD: ${MSSQL_SA_PASSWORD}
+      TZ: ${TZ:-America/Sao_Paulo}
     volumes:
       - ./data_gen/datagen:/app/datagen:ro   # bind-mounted for edit-and-rerun without a rebuild
     command: ["backfill", "--target", "dev"]
 
+  # ---------------------------------------------------------- datagen-stream
+  # Continuous background load, unlike the one-shot `datagen` service above —
+  # `up -d` it and it keeps ticking (and restarts if it crashes) until you
+  # `stop`/`down` it. Needs `dbo.users` already populated (run `backfill`
+  # first). Defaults to prod1 since that's the AG primary in Use case 2.
+  # `docker compose --profile datagen up -d datagen-stream`
+  # `docker compose --profile datagen logs -f datagen-stream`
+  # `docker compose --profile datagen stop datagen-stream`
+  datagen-stream:
+    profiles: ["datagen"]
+    build: ./data_gen
+    restart: unless-stopped
+    environment:
+      MSSQL_SA_PASSWORD: ${MSSQL_SA_PASSWORD}
+      TZ: ${TZ:-America/Sao_Paulo}
+    volumes:
+      - ./data_gen/datagen:/app/datagen:ro
+    command: ["stream", "--target", "prod1", "--interval", "3"]
+
 volumes:
   prod1-data:
   prod2-data:
+  prod3-data:
   dev-data:
   staging-data:
   ag-certs:

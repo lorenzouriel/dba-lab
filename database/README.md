@@ -36,11 +36,8 @@ split across schemas by domain:
 | `plan` | `goals` | Savings goals with a target/current amount and due date. |
 | `finance` | `earnings` | Income records (salary, bonus, freelance, ...). |
 | `finance` | `expenses` | Spending records with category and payment method. |
-| `finance` | `investments` | A user's individual investment positions (broker, invested amount, current value, yield). |
+| `finance` | `investments` | Ledger of amounts a user invested per asset/broker (no current value/returns -- computed by the app from a market-data API). |
 | `finance` | `bills` | Recurring/one-off payment obligations with due-date tracking. |
-| `investment` | `stocks` | Market OHLCV price history for stocks (reference data, not user-scoped). |
-| `investment` | `cryptos` | Market OHLCV price history for cryptocurrencies (reference data). |
-| `investment` | `currencies` | Historical FX rates between a currency and a base currency (reference data). |
 | `body` | `weekly_routines` | Template: the usual planned routine per day of week. |
 | `body` | `workouts` | A logged training session. |
 | `body` | `personal_records` | Append-only PR history per exercise/metric. |
@@ -48,6 +45,10 @@ split across schemas by domain:
 | `body` | `water_intake` | Daily running total of water consumed. |
 | `body` | `body_metrics` | Weight/height/body-fat measurements over time. |
 | `body` | `sleep_logs` | Bed/wake time per night; `total_hours` is a computed column. |
+| `body` | `habits` | Definitions of recurring non-workout habits to track (vitamins, stretching, reading, ...). |
+| `body` | `habit_logs` | Daily completed/skipped adherence log per habit. |
+| `body` | `substance_logs` | Caffeine/alcohol/nicotine intake log, timestamped for correlation with `sleep_logs`. |
+| `body` | `symptom_logs` | Symptom/illness log explaining days off the normal routine. |
 | `mind` | `meditation_sessions` | Per-session meditation log with before/after mood. |
 | `mind` | `journal_entries` | Free-form journal entries with optional mood/category. |
 

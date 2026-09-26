@@ -1,4 +1,4 @@
--- Append-only history of personal records -- a new row is inserted each time a record is broken for a given
+-- Append-only history of personal records, a new row is inserted each time a record is broken for a given
 -- exercise/metric_type, not updated in place.
 CREATE TABLE [body].[personal_records]
 (
@@ -24,7 +24,7 @@ GO
 ------------------------------------------------------------
 EXEC sp_addextendedproperty
     @name = N'MS_Description',
-    @value = N'Append-only history of personal records -- a new row is inserted each time a record is broken for a given exercise/metric_type, not updated in place.',
+    @value = N'Append-only history of personal records, a new row is inserted each time a record is broken for a given exercise/metric_type, not updated in place.',
     @level0type = N'Schema', @level0name = N'body',
     @level1type = N'Table',  @level1name = N'personal_records';
 GO

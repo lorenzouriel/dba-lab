@@ -1,4 +1,4 @@
--- Daily water intake as a running total -- one row per user per day, incremented as water is logged throughout
+-- Daily water intake as a running total, one row per user per day, incremented as water is logged throughout
 -- the day.
 CREATE TABLE [body].[water_intake]
 (

@@ -5,7 +5,7 @@ import os
 
 import pyodbc
 
-TARGETS = ("prod1", "prod2", "dev", "staging")
+TARGETS = ("prod1", "prod2", "prod3", "dev", "staging")
 
 
 def connect(target: str, database: str) -> pyodbc.Connection:

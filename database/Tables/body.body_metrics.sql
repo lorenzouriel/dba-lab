@@ -1,4 +1,4 @@
--- History of body measurements (weight, height, body fat) over time -- one row per user per date logged,
+-- History of body measurements (weight, height, body fat) over time, one row per user per date logged,
 -- enabling trend tracking.
 CREATE TABLE [body].[body_metrics]
 (
@@ -24,7 +24,7 @@ GO
 ------------------------------------------------------------
 EXEC sp_addextendedproperty
     @name = N'MS_Description',
-    @value = N'History of body measurements (weight, height, body fat) over time -- one row per user per date logged, enabling trend tracking.',
+    @value = N'History of body measurements (weight, height, body fat) over time, one row per user per date logged, enabling trend tracking.',
     @level0type = N'Schema', @level0name = N'body',
     @level1type = N'Table',  @level1name = N'body_metrics';
 GO

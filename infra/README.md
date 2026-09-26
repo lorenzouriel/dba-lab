@@ -3,30 +3,35 @@ SQL Server 2025 (Developer) lab in Docker for DP-800 — *Developing AI-Enabled
 Database Solutions*. No SQL Server installed on the host.
 
 ## Architecture
-| Instance | Port | Profile   | Notes                    |
-|----------|------|-----------|---------------------------|
-| prod1    | 1401 | (default) | AG primary, always up     |
-| prod2    | 1402 | `ha`      | AG secondary, read-only   |
-| dev      | 1403 | `dev`     | standalone, no AG         |
-| staging  | 1404 | `staging` | standalone, no AG         |
+| Instance | Port | Profile   | Notes                                             |
+|----------|------|-----------|----------------------------------------------------|
+| prod1    | 1401 | (default) | AG primary, always up                              |
+| prod2    | 1402 | `ha`      | AG secondary, synchronous-commit, read-only        |
+| prod3    | 1405 | `ha`      | AG secondary, asynchronous-commit, read-scale-only |
+| dev      | 1403 | `dev`     | standalone, no AG                                  |
+| staging  | 1404 | `staging` | standalone, no AG                                  |
 
-prod1/prod2 form the `ag1` availability group (see Use case 2). dev and
-staging are independent standalone instances — bring them up only when
+prod1/prod2/prod3 form the `ag1` availability group (see Use case 2). prod2
+is prod1's synchronous HA partner (manual failover target); prod3 is
+asynchronous, added purely for read-scale capacity — see Use case 2b. dev
+and staging are independent standalone instances — bring them up only when
 you need them.
 
 ## Layout
 ```
 sqlserver-lab/
-├── docker-compose.yml       prod1 + bootstrap-prod1; prod2 behind the ha
-│                             profile; dev behind the dev profile; staging
-│                             behind the staging profile
+├── docker-compose.yml       prod1 + bootstrap-prod1; prod2/prod3 behind the
+│                             ha profile; dev behind the dev profile;
+│                             staging behind the staging profile
 ├── .env.example             copy to .env — SA password, ports, memory
 ├── .gitignore                keeps .env and .bak out of git
 ├── scripts/
 │   ├── 00-bootstrap.sql     instance config, runs on every `up` (per instance)
 │   ├── 01-restore.sql       restore a .bak, auto-derives MOVE targets
+│   ├── 02-deploy-fin-pulse.sql  deploys database/'s fin_pulse schema via :r includes (no SqlPackage needed)
 │   ├── 10-ai-model.sql      external model + vector column patterns (Azure OpenAI)
-│   └── 20-ag-setup.sql      cert-based HADR endpoints + read-only availability group
+│   ├── 20-ag-setup.sql      cert-based HADR endpoints + ag1 (prod1 + prod2, sync HA)
+│   └── 21-ag-add-prod3.sql  adds prod3 to ag1 as an async, read-scale-only replica
 ├── restore/                 ← drop .bak files here (mounted read-only)
 ├── backups/                 ← BACKUP DATABASE writes here
 └── data_gen/                Python fin_pulse test data generator (see data_gen/README.md)
@@ -116,8 +121,23 @@ docker compose --profile ha run --rm ag-setup   # certs, endpoints, create + joi
 
 `ag-setup` creates a small `agdb` database if one doesn't already exist
 (override with `$env:AGDB = "yourdb"` before running, as long as that
-database exists and is reachable on prod1). Seeding runs asynchronously —
-check sync state:
+database exists and is reachable on prod1). To put the actual `fin_pulse`
+lab schema in the AG instead of the placeholder `agdb`, deploy it on prod1
+*before* running `ag-setup` — `ag-setup` sets `RECOVERY FULL` and takes the
+seeding backup unconditionally, whether the database is brand new or
+already deployed:
+
+```powershell
+docker compose up -d prod1
+docker compose exec prod1 /opt/mssql-tools18/bin/sqlcmd `
+  -S localhost -U sa -P "$env:MSSQL_SA_PASSWORD" -C -b -i /scripts/02-deploy-fin-pulse.sql
+
+$env:AGDB = "fin_pulse"
+docker compose --profile ha up -d prod2
+docker compose --profile ha run --rm ag-setup
+```
+
+Seeding runs asynchronously — check sync state:
 
 ```powershell
 docker compose exec prod1 /opt/mssql-tools18/bin/sqlcmd -S localhost -U sa -P "$env:MSSQL_SA_PASSWORD" -C -Q `
@@ -129,8 +149,44 @@ go from `SYNCHRONIZING` to `SYNCHRONIZED` on both rows once seeding catches
 up (`database_state_desc` is normal to see as `NULL` for the non-local row —
 only `synchronization_state_desc` is reliable cross-replica). There is no
 listener (no virtual IP without a cluster manager) — connect to `prod1,1401`
-for read-write, or `prod2,1402` (or `prod1,1401` with
-`ApplicationIntent=ReadOnly`, which routes to prod2) for read-only.
+for read-write, `prod2,1402` for read-only.
+
+**On `ApplicationIntent=ReadOnly` against prod1 itself:** the read-only
+routing list (`sys.availability_read_only_routing_lists`) is configured
+correctly, but actually *enforcing* it requires setting prod1's
+`PRIMARY_ROLE (ALLOW_CONNECTIONS = READ_WRITE)` (the default is `ALL`, which
+just serves read-only-intent connections locally on prod1 instead of
+redirecting them). Flipping that on in this lab surfaced a client-side TLS
+failure during the automatic redirect handshake against these self-signed
+certs (`sqlcmd` and `pyodbc` both fail the same way) — a real-CA-cert
+problem, not a config bug — so it's left at the `ALL` default here.
+**Connect directly to `prod2`/`prod3` by name for guaranteed read-only
+access**; don't rely on ApplicationIntent-based auto-redirect through prod1
+in this environment.
+
+---
+
+## Use case 2b — prod3: add an async read-scale replica
+`prod3` is a third AG replica, `ASYNCHRONOUS_COMMIT` instead of prod2's
+`SYNCHRONOUS_COMMIT` — extra read capacity, not another HA failover partner
+(async secondaries don't block primary commits, which is the point for a
+replica that's read-scale-only). `21-ag-add-prod3.sql` sets up full-mesh
+cert trust (prod3↔prod1 *and* prod3↔prod2, so a manual failover to prod2
+can still talk to prod3 directly), adds prod3 to the existing `ag1`, and
+folds it into read-only routing alongside prod2 as a load-balanced pair.
+Run this *after* Use case 2's `ag-setup` has already created `ag1`:
+
+```powershell
+docker compose --profile ha up -d prod3               # localhost,1405
+docker compose --profile ha run --rm ag-add-prod3      # certs, join ag1, fold into routing
+```
+
+Check state the same way as Use case 2 — prod3 shows
+`availability_mode_desc = ASYNCHRONOUS_COMMIT` and its steady-state
+`synchronization_state_desc` is `SYNCHRONIZING` (not `SYNCHRONIZED` — that's
+normal/expected for an async replica, not stuck). Connect directly to
+`prod3,1405` for reads (see the ApplicationIntent caveat above — the same
+TLS limitation applies here too).
 
 ---
 
@@ -153,15 +209,33 @@ instead of `prod1`.
 
 ## Use case 4 — heavy daily usage data (data_gen)
 `data_gen/` is a Python generator that fills the [`database/`](../database/)
-`fin_pulse` schema (personal finance + health tracker) with 10 believable,
+`fin_pulse` schema (personal finance + health tracker) with 50 believable,
 **heavily-active** users by default: several expenses and meals logged per
-day, plus daily water/sleep/journal entries across a rolling window — see
+day, plus daily water/sleep/journal entries across a full year — see
 [`data_gen/README.md`](data_gen/README.md) for exactly what gets generated
-per table.
+per table (around 270k rows for a default run, in well under 15 seconds).
 
 ```powershell
 docker compose --profile datagen run --rm datagen backfill --target dev
-docker compose --profile datagen run --rm datagen backfill --target dev --users 25 --days 180 --reset
+docker compose --profile datagen run --rm datagen backfill --target dev --users 100 --days 365 --reset
+```
+
+Once users exist, `stream` logs a few "right now" rows every few seconds
+instead of a historical batch — run it against `prod1` (after Use case 2's
+AG join) to watch rows land on the `prod2` read-only secondary as they
+replicate. For a one-off foreground run:
+
+```powershell
+docker compose --profile datagen run --rm datagen stream --target prod1
+```
+
+Or leave continuous load running in the background indefinitely via the
+dedicated `datagen-stream` service (`restart: unless-stopped`):
+
+```powershell
+docker compose --profile datagen up -d datagen-stream
+docker compose --profile datagen logs -f datagen-stream
+docker compose --profile datagen stop datagen-stream
 ```
 
 ---
