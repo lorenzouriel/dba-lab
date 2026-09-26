@@ -1,0 +1,2018 @@
+{
+  "$schema": "https://github.com/Azure/data-api-builder/releases/download/v2.0.12/dab.draft.schema.json",
+  "data-source": {
+    "database-type": "mssql",
+    "connection-string": "@env('DATABASE_CONNECTION_STRING')",
+    "options": {
+      "set-session-context": false
+    }
+  },
+  "runtime": {
+    "rest": {
+      "enabled": true,
+      "path": "/api",
+      "request-body-strict": false
+    },
+    "graphql": {
+      "enabled": true,
+      "path": "/graphql",
+      "allow-introspection": true
+    },
+    "mcp": {
+      "enabled": true,
+      "path": "/mcp"
+    },
+    "host": {
+      "cors": {
+        "origins": [],
+        "allow-credentials": false
+      },
+      "authentication": {
+        "provider": "Unauthenticated"
+      },
+      "mode": "development"
+    },
+    "telemetry": {
+      "open-telemetry": {
+        "enabled": true,
+        "endpoint": "@env('OTEL_EXPORTER_OTLP_ENDPOINT')",
+        "headers": "@env('OTEL_EXPORTER_OTLP_HEADERS')",
+        "service-name": "@env('OTEL_SERVICE_NAME')"
+      }
+    }
+  },
+  "autoentities": {},
+  "entities": {
+    "User": {
+      "source": {
+        "object": "dbo.users",
+        "type": "table"
+      },
+      "fields": [
+        {
+          "name": "phone_number",
+          "alias": "phoneNumber",
+          "primary-key": false
+        },
+        {
+          "name": "created_at",
+          "alias": "createdAt",
+          "primary-key": false
+        }
+      ],
+      "graphql": {
+        "enabled": true,
+        "type": {
+          "singular": "User",
+          "plural": "Users"
+        }
+      },
+      "rest": {
+        "enabled": true
+      },
+      "permissions": [
+        {
+          "role": "authenticated",
+          "actions": [
+            {
+              "action": "update",
+              "fields": {
+                "exclude": [
+                  "password"
+                ]
+              },
+              "policy": {
+                "database": "@item.id eq @claims.userId"
+              }
+            },
+            {
+              "action": "read",
+              "fields": {
+                "exclude": [
+                  "password"
+                ]
+              },
+              "policy": {
+                "database": "@item.id eq @claims.userId"
+              }
+            }
+          ]
+        }
+      ],
+      "relationships": {
+        "bodyMetrics": {
+          "cardinality": "many",
+          "target.entity": "BodyMetric",
+          "source.fields": [
+            "id"
+          ],
+          "target.fields": [
+            "user_id"
+          ],
+          "linking.source.fields": [],
+          "linking.target.fields": []
+        },
+        "habits": {
+          "cardinality": "many",
+          "target.entity": "Habit",
+          "source.fields": [
+            "id"
+          ],
+          "target.fields": [
+            "user_id"
+          ],
+          "linking.source.fields": [],
+          "linking.target.fields": []
+        },
+        "habitLogs": {
+          "cardinality": "many",
+          "target.entity": "HabitLog",
+          "source.fields": [
+            "id"
+          ],
+          "target.fields": [
+            "user_id"
+          ],
+          "linking.source.fields": [],
+          "linking.target.fields": []
+        },
+        "meals": {
+          "cardinality": "many",
+          "target.entity": "Meal",
+          "source.fields": [
+            "id"
+          ],
+          "target.fields": [
+            "user_id"
+          ],
+          "linking.source.fields": [],
+          "linking.target.fields": []
+        },
+        "personalRecords": {
+          "cardinality": "many",
+          "target.entity": "PersonalRecord",
+          "source.fields": [
+            "id"
+          ],
+          "target.fields": [
+            "user_id"
+          ],
+          "linking.source.fields": [],
+          "linking.target.fields": []
+        },
+        "sleepLogs": {
+          "cardinality": "many",
+          "target.entity": "SleepLog",
+          "source.fields": [
+            "id"
+          ],
+          "target.fields": [
+            "user_id"
+          ],
+          "linking.source.fields": [],
+          "linking.target.fields": []
+        },
+        "substanceLogs": {
+          "cardinality": "many",
+          "target.entity": "SubstanceLog",
+          "source.fields": [
+            "id"
+          ],
+          "target.fields": [
+            "user_id"
+          ],
+          "linking.source.fields": [],
+          "linking.target.fields": []
+        },
+        "symptomLogs": {
+          "cardinality": "many",
+          "target.entity": "SymptomLog",
+          "source.fields": [
+            "id"
+          ],
+          "target.fields": [
+            "user_id"
+          ],
+          "linking.source.fields": [],
+          "linking.target.fields": []
+        },
+        "waterIntakes": {
+          "cardinality": "many",
+          "target.entity": "WaterIntake",
+          "source.fields": [
+            "id"
+          ],
+          "target.fields": [
+            "user_id"
+          ],
+          "linking.source.fields": [],
+          "linking.target.fields": []
+        },
+        "weeklyRoutines": {
+          "cardinality": "many",
+          "target.entity": "WeeklyRoutine",
+          "source.fields": [
+            "id"
+          ],
+          "target.fields": [
+            "user_id"
+          ],
+          "linking.source.fields": [],
+          "linking.target.fields": []
+        },
+        "workouts": {
+          "cardinality": "many",
+          "target.entity": "Workout",
+          "source.fields": [
+            "id"
+          ],
+          "target.fields": [
+            "user_id"
+          ],
+          "linking.source.fields": [],
+          "linking.target.fields": []
+        },
+        "bills": {
+          "cardinality": "many",
+          "target.entity": "Bill",
+          "source.fields": [
+            "id"
+          ],
+          "target.fields": [
+            "user_id"
+          ],
+          "linking.source.fields": [],
+          "linking.target.fields": []
+        },
+        "earnings": {
+          "cardinality": "many",
+          "target.entity": "Earning",
+          "source.fields": [
+            "id"
+          ],
+          "target.fields": [
+            "user_id"
+          ],
+          "linking.source.fields": [],
+          "linking.target.fields": []
+        },
+        "expenses": {
+          "cardinality": "many",
+          "target.entity": "Expense",
+          "source.fields": [
+            "id"
+          ],
+          "target.fields": [
+            "user_id"
+          ],
+          "linking.source.fields": [],
+          "linking.target.fields": []
+        },
+        "investments": {
+          "cardinality": "many",
+          "target.entity": "Investment",
+          "source.fields": [
+            "id"
+          ],
+          "target.fields": [
+            "user_id"
+          ],
+          "linking.source.fields": [],
+          "linking.target.fields": []
+        },
+        "journalEntries": {
+          "cardinality": "many",
+          "target.entity": "JournalEntry",
+          "source.fields": [
+            "id"
+          ],
+          "target.fields": [
+            "user_id"
+          ],
+          "linking.source.fields": [],
+          "linking.target.fields": []
+        },
+        "meditationSessions": {
+          "cardinality": "many",
+          "target.entity": "MeditationSession",
+          "source.fields": [
+            "id"
+          ],
+          "target.fields": [
+            "user_id"
+          ],
+          "linking.source.fields": [],
+          "linking.target.fields": []
+        },
+        "budgets": {
+          "cardinality": "many",
+          "target.entity": "Budget",
+          "source.fields": [
+            "id"
+          ],
+          "target.fields": [
+            "user_id"
+          ],
+          "linking.source.fields": [],
+          "linking.target.fields": []
+        },
+        "goals": {
+          "cardinality": "many",
+          "target.entity": "Goal",
+          "source.fields": [
+            "id"
+          ],
+          "target.fields": [
+            "user_id"
+          ],
+          "linking.source.fields": [],
+          "linking.target.fields": []
+        }
+      }
+    },
+    "BodyMetric": {
+      "source": {
+        "object": "body.body_metrics",
+        "type": "table"
+      },
+      "fields": [
+        {
+          "name": "user_id",
+          "alias": "userId",
+          "primary-key": false
+        },
+        {
+          "name": "measured_date",
+          "alias": "measuredDate",
+          "primary-key": false
+        },
+        {
+          "name": "weight_kg",
+          "alias": "weightKg",
+          "primary-key": false
+        },
+        {
+          "name": "height_cm",
+          "alias": "heightCm",
+          "primary-key": false
+        },
+        {
+          "name": "body_fat_percent",
+          "alias": "bodyFatPercent",
+          "primary-key": false
+        },
+        {
+          "name": "created_at",
+          "alias": "createdAt",
+          "primary-key": false
+        }
+      ],
+      "graphql": {
+        "enabled": true,
+        "type": {
+          "singular": "BodyMetric",
+          "plural": "BodyMetrics"
+        }
+      },
+      "rest": {
+        "enabled": true
+      },
+      "permissions": [
+        {
+          "role": "authenticated",
+          "actions": [
+            {
+              "action": "read",
+              "policy": {
+                "database": "@item.user_id eq @claims.userId"
+              }
+            },
+            {
+              "action": "update",
+              "policy": {
+                "database": "@item.user_id eq @claims.userId"
+              }
+            },
+            {
+              "action": "delete",
+              "policy": {
+                "database": "@item.user_id eq @claims.userId"
+              }
+            },
+            {
+              "action": "create"
+            }
+          ]
+        }
+      ],
+      "relationships": {
+        "user": {
+          "cardinality": "one",
+          "target.entity": "User",
+          "source.fields": [
+            "user_id"
+          ],
+          "target.fields": [
+            "id"
+          ],
+          "linking.source.fields": [],
+          "linking.target.fields": []
+        }
+      }
+    },
+    "Habit": {
+      "source": {
+        "object": "body.habits",
+        "type": "table"
+      },
+      "fields": [
+        {
+          "name": "user_id",
+          "alias": "userId",
+          "primary-key": false
+        },
+        {
+          "name": "habit_name",
+          "alias": "habitName",
+          "primary-key": false
+        },
+        {
+          "name": "target_frequency",
+          "alias": "targetFrequency",
+          "primary-key": false
+        },
+        {
+          "name": "created_at",
+          "alias": "createdAt",
+          "primary-key": false
+        }
+      ],
+      "graphql": {
+        "enabled": true,
+        "type": {
+          "singular": "Habit",
+          "plural": "Habits"
+        }
+      },
+      "rest": {
+        "enabled": true
+      },
+      "permissions": [
+        {
+          "role": "authenticated",
+          "actions": [
+            {
+              "action": "read",
+              "policy": {
+                "database": "@item.user_id eq @claims.userId"
+              }
+            },
+            {
+              "action": "update",
+              "policy": {
+                "database": "@item.user_id eq @claims.userId"
+              }
+            },
+            {
+              "action": "delete",
+              "policy": {
+                "database": "@item.user_id eq @claims.userId"
+              }
+            },
+            {
+              "action": "create"
+            }
+          ]
+        }
+      ],
+      "relationships": {
+        "user": {
+          "cardinality": "one",
+          "target.entity": "User",
+          "source.fields": [
+            "user_id"
+          ],
+          "target.fields": [
+            "id"
+          ],
+          "linking.source.fields": [],
+          "linking.target.fields": []
+        },
+        "habitLogs": {
+          "cardinality": "many",
+          "target.entity": "HabitLog",
+          "source.fields": [
+            "id"
+          ],
+          "target.fields": [
+            "habit_id"
+          ],
+          "linking.source.fields": [],
+          "linking.target.fields": []
+        }
+      }
+    },
+    "HabitLog": {
+      "source": {
+        "object": "body.habit_logs",
+        "type": "table"
+      },
+      "fields": [
+        {
+          "name": "user_id",
+          "alias": "userId",
+          "primary-key": false
+        },
+        {
+          "name": "habit_id",
+          "alias": "habitId",
+          "primary-key": false
+        },
+        {
+          "name": "log_date",
+          "alias": "logDate",
+          "primary-key": false
+        },
+        {
+          "name": "is_completed",
+          "alias": "isCompleted",
+          "primary-key": false
+        },
+        {
+          "name": "created_at",
+          "alias": "createdAt",
+          "primary-key": false
+        }
+      ],
+      "graphql": {
+        "enabled": true,
+        "type": {
+          "singular": "HabitLog",
+          "plural": "HabitLogs"
+        }
+      },
+      "rest": {
+        "enabled": true
+      },
+      "permissions": [
+        {
+          "role": "authenticated",
+          "actions": [
+            {
+              "action": "read",
+              "policy": {
+                "database": "@item.user_id eq @claims.userId"
+              }
+            },
+            {
+              "action": "update",
+              "policy": {
+                "database": "@item.user_id eq @claims.userId"
+              }
+            },
+            {
+              "action": "delete",
+              "policy": {
+                "database": "@item.user_id eq @claims.userId"
+              }
+            },
+            {
+              "action": "create"
+            }
+          ]
+        }
+      ],
+      "relationships": {
+        "user": {
+          "cardinality": "one",
+          "target.entity": "User",
+          "source.fields": [
+            "user_id"
+          ],
+          "target.fields": [
+            "id"
+          ],
+          "linking.source.fields": [],
+          "linking.target.fields": []
+        },
+        "habit": {
+          "cardinality": "one",
+          "target.entity": "Habit",
+          "source.fields": [
+            "habit_id"
+          ],
+          "target.fields": [
+            "id"
+          ],
+          "linking.source.fields": [],
+          "linking.target.fields": []
+        }
+      }
+    },
+    "Meal": {
+      "source": {
+        "object": "body.meals",
+        "type": "table"
+      },
+      "fields": [
+        {
+          "name": "user_id",
+          "alias": "userId",
+          "primary-key": false
+        },
+        {
+          "name": "meal_date",
+          "alias": "mealDate",
+          "primary-key": false
+        },
+        {
+          "name": "meal_type",
+          "alias": "mealType",
+          "primary-key": false
+        },
+        {
+          "name": "protein_grams",
+          "alias": "proteinGrams",
+          "primary-key": false
+        },
+        {
+          "name": "carbs_grams",
+          "alias": "carbsGrams",
+          "primary-key": false
+        },
+        {
+          "name": "fat_grams",
+          "alias": "fatGrams",
+          "primary-key": false
+        },
+        {
+          "name": "created_at",
+          "alias": "createdAt",
+          "primary-key": false
+        }
+      ],
+      "graphql": {
+        "enabled": true,
+        "type": {
+          "singular": "Meal",
+          "plural": "Meals"
+        }
+      },
+      "rest": {
+        "enabled": true
+      },
+      "permissions": [
+        {
+          "role": "authenticated",
+          "actions": [
+            {
+              "action": "read",
+              "policy": {
+                "database": "@item.user_id eq @claims.userId"
+              }
+            },
+            {
+              "action": "update",
+              "policy": {
+                "database": "@item.user_id eq @claims.userId"
+              }
+            },
+            {
+              "action": "delete",
+              "policy": {
+                "database": "@item.user_id eq @claims.userId"
+              }
+            },
+            {
+              "action": "create"
+            }
+          ]
+        }
+      ],
+      "relationships": {
+        "user": {
+          "cardinality": "one",
+          "target.entity": "User",
+          "source.fields": [
+            "user_id"
+          ],
+          "target.fields": [
+            "id"
+          ],
+          "linking.source.fields": [],
+          "linking.target.fields": []
+        }
+      }
+    },
+    "PersonalRecord": {
+      "source": {
+        "object": "body.personal_records",
+        "type": "table"
+      },
+      "fields": [
+        {
+          "name": "user_id",
+          "alias": "userId",
+          "primary-key": false
+        },
+        {
+          "name": "exercise_name",
+          "alias": "exerciseName",
+          "primary-key": false
+        },
+        {
+          "name": "metric_type",
+          "alias": "metricType",
+          "primary-key": false
+        },
+        {
+          "name": "achieved_date",
+          "alias": "achievedDate",
+          "primary-key": false
+        },
+        {
+          "name": "created_at",
+          "alias": "createdAt",
+          "primary-key": false
+        }
+      ],
+      "graphql": {
+        "enabled": true,
+        "type": {
+          "singular": "PersonalRecord",
+          "plural": "PersonalRecords"
+        }
+      },
+      "rest": {
+        "enabled": true
+      },
+      "permissions": [
+        {
+          "role": "authenticated",
+          "actions": [
+            {
+              "action": "read",
+              "policy": {
+                "database": "@item.user_id eq @claims.userId"
+              }
+            },
+            {
+              "action": "update",
+              "policy": {
+                "database": "@item.user_id eq @claims.userId"
+              }
+            },
+            {
+              "action": "delete",
+              "policy": {
+                "database": "@item.user_id eq @claims.userId"
+              }
+            },
+            {
+              "action": "create"
+            }
+          ]
+        }
+      ],
+      "relationships": {
+        "user": {
+          "cardinality": "one",
+          "target.entity": "User",
+          "source.fields": [
+            "user_id"
+          ],
+          "target.fields": [
+            "id"
+          ],
+          "linking.source.fields": [],
+          "linking.target.fields": []
+        }
+      }
+    },
+    "SleepLog": {
+      "source": {
+        "object": "body.sleep_logs",
+        "type": "table"
+      },
+      "fields": [
+        {
+          "name": "user_id",
+          "alias": "userId",
+          "primary-key": false
+        },
+        {
+          "name": "bed_time",
+          "alias": "bedTime",
+          "primary-key": false
+        },
+        {
+          "name": "wake_time",
+          "alias": "wakeTime",
+          "primary-key": false
+        },
+        {
+          "name": "total_hours",
+          "alias": "totalHours",
+          "primary-key": false
+        },
+        {
+          "name": "created_at",
+          "alias": "createdAt",
+          "primary-key": false
+        }
+      ],
+      "graphql": {
+        "enabled": true,
+        "type": {
+          "singular": "SleepLog",
+          "plural": "SleepLogs"
+        }
+      },
+      "rest": {
+        "enabled": true
+      },
+      "permissions": [
+        {
+          "role": "authenticated",
+          "actions": [
+            {
+              "action": "read",
+              "policy": {
+                "database": "@item.user_id eq @claims.userId"
+              }
+            },
+            {
+              "action": "update",
+              "policy": {
+                "database": "@item.user_id eq @claims.userId"
+              }
+            },
+            {
+              "action": "delete",
+              "policy": {
+                "database": "@item.user_id eq @claims.userId"
+              }
+            },
+            {
+              "action": "create"
+            }
+          ]
+        }
+      ],
+      "relationships": {
+        "user": {
+          "cardinality": "one",
+          "target.entity": "User",
+          "source.fields": [
+            "user_id"
+          ],
+          "target.fields": [
+            "id"
+          ],
+          "linking.source.fields": [],
+          "linking.target.fields": []
+        }
+      }
+    },
+    "SubstanceLog": {
+      "source": {
+        "object": "body.substance_logs",
+        "type": "table"
+      },
+      "fields": [
+        {
+          "name": "user_id",
+          "alias": "userId",
+          "primary-key": false
+        },
+        {
+          "name": "consumed_at",
+          "alias": "consumedAt",
+          "primary-key": false
+        },
+        {
+          "name": "substance_type",
+          "alias": "substanceType",
+          "primary-key": false
+        },
+        {
+          "name": "created_at",
+          "alias": "createdAt",
+          "primary-key": false
+        }
+      ],
+      "graphql": {
+        "enabled": true,
+        "type": {
+          "singular": "SubstanceLog",
+          "plural": "SubstanceLogs"
+        }
+      },
+      "rest": {
+        "enabled": true
+      },
+      "permissions": [
+        {
+          "role": "authenticated",
+          "actions": [
+            {
+              "action": "read",
+              "policy": {
+                "database": "@item.user_id eq @claims.userId"
+              }
+            },
+            {
+              "action": "update",
+              "policy": {
+                "database": "@item.user_id eq @claims.userId"
+              }
+            },
+            {
+              "action": "delete",
+              "policy": {
+                "database": "@item.user_id eq @claims.userId"
+              }
+            },
+            {
+              "action": "create"
+            }
+          ]
+        }
+      ],
+      "relationships": {
+        "user": {
+          "cardinality": "one",
+          "target.entity": "User",
+          "source.fields": [
+            "user_id"
+          ],
+          "target.fields": [
+            "id"
+          ],
+          "linking.source.fields": [],
+          "linking.target.fields": []
+        }
+      }
+    },
+    "SymptomLog": {
+      "source": {
+        "object": "body.symptom_logs",
+        "type": "table"
+      },
+      "fields": [
+        {
+          "name": "user_id",
+          "alias": "userId",
+          "primary-key": false
+        },
+        {
+          "name": "log_date",
+          "alias": "logDate",
+          "primary-key": false
+        },
+        {
+          "name": "created_at",
+          "alias": "createdAt",
+          "primary-key": false
+        }
+      ],
+      "graphql": {
+        "enabled": true,
+        "type": {
+          "singular": "SymptomLog",
+          "plural": "SymptomLogs"
+        }
+      },
+      "rest": {
+        "enabled": true
+      },
+      "permissions": [
+        {
+          "role": "authenticated",
+          "actions": [
+            {
+              "action": "read",
+              "policy": {
+                "database": "@item.user_id eq @claims.userId"
+              }
+            },
+            {
+              "action": "update",
+              "policy": {
+                "database": "@item.user_id eq @claims.userId"
+              }
+            },
+            {
+              "action": "delete",
+              "policy": {
+                "database": "@item.user_id eq @claims.userId"
+              }
+            },
+            {
+              "action": "create"
+            }
+          ]
+        }
+      ],
+      "relationships": {
+        "user": {
+          "cardinality": "one",
+          "target.entity": "User",
+          "source.fields": [
+            "user_id"
+          ],
+          "target.fields": [
+            "id"
+          ],
+          "linking.source.fields": [],
+          "linking.target.fields": []
+        }
+      }
+    },
+    "WaterIntake": {
+      "source": {
+        "object": "body.water_intake",
+        "type": "table"
+      },
+      "fields": [
+        {
+          "name": "user_id",
+          "alias": "userId",
+          "primary-key": false
+        },
+        {
+          "name": "intake_date",
+          "alias": "intakeDate",
+          "primary-key": false
+        },
+        {
+          "name": "amount_ml",
+          "alias": "amountMl",
+          "primary-key": false
+        },
+        {
+          "name": "created_at",
+          "alias": "createdAt",
+          "primary-key": false
+        }
+      ],
+      "graphql": {
+        "enabled": true,
+        "type": {
+          "singular": "WaterIntake",
+          "plural": "WaterIntakes"
+        }
+      },
+      "rest": {
+        "enabled": true
+      },
+      "permissions": [
+        {
+          "role": "authenticated",
+          "actions": [
+            {
+              "action": "read",
+              "policy": {
+                "database": "@item.user_id eq @claims.userId"
+              }
+            },
+            {
+              "action": "update",
+              "policy": {
+                "database": "@item.user_id eq @claims.userId"
+              }
+            },
+            {
+              "action": "delete",
+              "policy": {
+                "database": "@item.user_id eq @claims.userId"
+              }
+            },
+            {
+              "action": "create"
+            }
+          ]
+        }
+      ],
+      "relationships": {
+        "user": {
+          "cardinality": "one",
+          "target.entity": "User",
+          "source.fields": [
+            "user_id"
+          ],
+          "target.fields": [
+            "id"
+          ],
+          "linking.source.fields": [],
+          "linking.target.fields": []
+        }
+      }
+    },
+    "WeeklyRoutine": {
+      "source": {
+        "object": "body.weekly_routines",
+        "type": "table"
+      },
+      "fields": [
+        {
+          "name": "user_id",
+          "alias": "userId",
+          "primary-key": false
+        },
+        {
+          "name": "day_of_week",
+          "alias": "dayOfWeek",
+          "primary-key": false
+        },
+        {
+          "name": "routine_name",
+          "alias": "routineName",
+          "primary-key": false
+        },
+        {
+          "name": "created_at",
+          "alias": "createdAt",
+          "primary-key": false
+        }
+      ],
+      "graphql": {
+        "enabled": true,
+        "type": {
+          "singular": "WeeklyRoutine",
+          "plural": "WeeklyRoutines"
+        }
+      },
+      "rest": {
+        "enabled": true
+      },
+      "permissions": [
+        {
+          "role": "authenticated",
+          "actions": [
+            {
+              "action": "read",
+              "policy": {
+                "database": "@item.user_id eq @claims.userId"
+              }
+            },
+            {
+              "action": "update",
+              "policy": {
+                "database": "@item.user_id eq @claims.userId"
+              }
+            },
+            {
+              "action": "delete",
+              "policy": {
+                "database": "@item.user_id eq @claims.userId"
+              }
+            },
+            {
+              "action": "create"
+            }
+          ]
+        }
+      ],
+      "relationships": {
+        "user": {
+          "cardinality": "one",
+          "target.entity": "User",
+          "source.fields": [
+            "user_id"
+          ],
+          "target.fields": [
+            "id"
+          ],
+          "linking.source.fields": [],
+          "linking.target.fields": []
+        }
+      }
+    },
+    "Workout": {
+      "source": {
+        "object": "body.workouts",
+        "type": "table"
+      },
+      "fields": [
+        {
+          "name": "user_id",
+          "alias": "userId",
+          "primary-key": false
+        },
+        {
+          "name": "workout_date",
+          "alias": "workoutDate",
+          "primary-key": false
+        },
+        {
+          "name": "routine_name",
+          "alias": "routineName",
+          "primary-key": false
+        },
+        {
+          "name": "duration_minutes",
+          "alias": "durationMinutes",
+          "primary-key": false
+        },
+        {
+          "name": "calories_burned",
+          "alias": "caloriesBurned",
+          "primary-key": false
+        },
+        {
+          "name": "created_at",
+          "alias": "createdAt",
+          "primary-key": false
+        }
+      ],
+      "graphql": {
+        "enabled": true,
+        "type": {
+          "singular": "Workout",
+          "plural": "Workouts"
+        }
+      },
+      "rest": {
+        "enabled": true
+      },
+      "permissions": [
+        {
+          "role": "authenticated",
+          "actions": [
+            {
+              "action": "read",
+              "policy": {
+                "database": "@item.user_id eq @claims.userId"
+              }
+            },
+            {
+              "action": "update",
+              "policy": {
+                "database": "@item.user_id eq @claims.userId"
+              }
+            },
+            {
+              "action": "delete",
+              "policy": {
+                "database": "@item.user_id eq @claims.userId"
+              }
+            },
+            {
+              "action": "create"
+            }
+          ]
+        }
+      ],
+      "relationships": {
+        "user": {
+          "cardinality": "one",
+          "target.entity": "User",
+          "source.fields": [
+            "user_id"
+          ],
+          "target.fields": [
+            "id"
+          ],
+          "linking.source.fields": [],
+          "linking.target.fields": []
+        }
+      }
+    },
+    "Bill": {
+      "source": {
+        "object": "finance.bills",
+        "type": "table"
+      },
+      "fields": [
+        {
+          "name": "user_id",
+          "alias": "userId",
+          "primary-key": false
+        },
+        {
+          "name": "bill_name",
+          "alias": "billName",
+          "primary-key": false
+        },
+        {
+          "name": "payment_method",
+          "alias": "paymentMethod",
+          "primary-key": false
+        },
+        {
+          "name": "currency_code",
+          "alias": "currencyCode",
+          "primary-key": false
+        },
+        {
+          "name": "due_date",
+          "alias": "dueDate",
+          "primary-key": false
+        },
+        {
+          "name": "recurrence_type",
+          "alias": "recurrenceType",
+          "primary-key": false
+        },
+        {
+          "name": "recurrence_interval",
+          "alias": "recurrenceInterval",
+          "primary-key": false
+        },
+        {
+          "name": "next_due_date",
+          "alias": "nextDueDate",
+          "primary-key": false
+        },
+        {
+          "name": "paid_date",
+          "alias": "paidDate",
+          "primary-key": false
+        },
+        {
+          "name": "created_at",
+          "alias": "createdAt",
+          "primary-key": false
+        },
+        {
+          "name": "updated_at",
+          "alias": "updatedAt",
+          "primary-key": false
+        }
+      ],
+      "graphql": {
+        "enabled": true,
+        "type": {
+          "singular": "Bill",
+          "plural": "Bills"
+        }
+      },
+      "rest": {
+        "enabled": true
+      },
+      "permissions": [
+        {
+          "role": "authenticated",
+          "actions": [
+            {
+              "action": "read",
+              "policy": {
+                "database": "@item.user_id eq @claims.userId"
+              }
+            },
+            {
+              "action": "update",
+              "policy": {
+                "database": "@item.user_id eq @claims.userId"
+              }
+            },
+            {
+              "action": "delete",
+              "policy": {
+                "database": "@item.user_id eq @claims.userId"
+              }
+            },
+            {
+              "action": "create"
+            }
+          ]
+        }
+      ],
+      "relationships": {
+        "user": {
+          "cardinality": "one",
+          "target.entity": "User",
+          "source.fields": [
+            "user_id"
+          ],
+          "target.fields": [
+            "id"
+          ],
+          "linking.source.fields": [],
+          "linking.target.fields": []
+        }
+      }
+    },
+    "Earning": {
+      "source": {
+        "object": "finance.earnings",
+        "type": "table"
+      },
+      "fields": [
+        {
+          "name": "user_id",
+          "alias": "userId",
+          "primary-key": false
+        },
+        {
+          "name": "payment_method",
+          "alias": "paymentMethod",
+          "primary-key": false
+        },
+        {
+          "name": "currency_code",
+          "alias": "currencyCode",
+          "primary-key": false
+        },
+        {
+          "name": "earning_date",
+          "alias": "earningDate",
+          "primary-key": false
+        },
+        {
+          "name": "created_at",
+          "alias": "createdAt",
+          "primary-key": false
+        }
+      ],
+      "graphql": {
+        "enabled": true,
+        "type": {
+          "singular": "Earning",
+          "plural": "Earnings"
+        }
+      },
+      "rest": {
+        "enabled": true
+      },
+      "permissions": [
+        {
+          "role": "authenticated",
+          "actions": [
+            {
+              "action": "read",
+              "policy": {
+                "database": "@item.user_id eq @claims.userId"
+              }
+            },
+            {
+              "action": "update",
+              "policy": {
+                "database": "@item.user_id eq @claims.userId"
+              }
+            },
+            {
+              "action": "delete",
+              "policy": {
+                "database": "@item.user_id eq @claims.userId"
+              }
+            },
+            {
+              "action": "create"
+            }
+          ]
+        }
+      ],
+      "relationships": {
+        "user": {
+          "cardinality": "one",
+          "target.entity": "User",
+          "source.fields": [
+            "user_id"
+          ],
+          "target.fields": [
+            "id"
+          ],
+          "linking.source.fields": [],
+          "linking.target.fields": []
+        }
+      }
+    },
+    "Expense": {
+      "source": {
+        "object": "finance.expenses",
+        "type": "table"
+      },
+      "fields": [
+        {
+          "name": "user_id",
+          "alias": "userId",
+          "primary-key": false
+        },
+        {
+          "name": "payment_method",
+          "alias": "paymentMethod",
+          "primary-key": false
+        },
+        {
+          "name": "currency_code",
+          "alias": "currencyCode",
+          "primary-key": false
+        },
+        {
+          "name": "expense_date",
+          "alias": "expenseDate",
+          "primary-key": false
+        },
+        {
+          "name": "created_at",
+          "alias": "createdAt",
+          "primary-key": false
+        }
+      ],
+      "graphql": {
+        "enabled": true,
+        "type": {
+          "singular": "Expense",
+          "plural": "Expenses"
+        }
+      },
+      "rest": {
+        "enabled": true
+      },
+      "permissions": [
+        {
+          "role": "authenticated",
+          "actions": [
+            {
+              "action": "read",
+              "policy": {
+                "database": "@item.user_id eq @claims.userId"
+              }
+            },
+            {
+              "action": "update",
+              "policy": {
+                "database": "@item.user_id eq @claims.userId"
+              }
+            },
+            {
+              "action": "delete",
+              "policy": {
+                "database": "@item.user_id eq @claims.userId"
+              }
+            },
+            {
+              "action": "create"
+            }
+          ]
+        }
+      ],
+      "relationships": {
+        "user": {
+          "cardinality": "one",
+          "target.entity": "User",
+          "source.fields": [
+            "user_id"
+          ],
+          "target.fields": [
+            "id"
+          ],
+          "linking.source.fields": [],
+          "linking.target.fields": []
+        }
+      }
+    },
+    "Investment": {
+      "source": {
+        "object": "finance.investments",
+        "type": "table"
+      },
+      "fields": [
+        {
+          "name": "user_id",
+          "alias": "userId",
+          "primary-key": false
+        },
+        {
+          "name": "investment_type",
+          "alias": "investmentType",
+          "primary-key": false
+        },
+        {
+          "name": "asset_name",
+          "alias": "assetName",
+          "primary-key": false
+        },
+        {
+          "name": "currency_code",
+          "alias": "currencyCode",
+          "primary-key": false
+        },
+        {
+          "name": "invested_amount",
+          "alias": "investedAmount",
+          "primary-key": false
+        },
+        {
+          "name": "purchase_date",
+          "alias": "purchaseDate",
+          "primary-key": false
+        },
+        {
+          "name": "maturity_date",
+          "alias": "maturityDate",
+          "primary-key": false
+        },
+        {
+          "name": "created_at",
+          "alias": "createdAt",
+          "primary-key": false
+        }
+      ],
+      "graphql": {
+        "enabled": true,
+        "type": {
+          "singular": "Investment",
+          "plural": "Investments"
+        }
+      },
+      "rest": {
+        "enabled": true
+      },
+      "permissions": [
+        {
+          "role": "authenticated",
+          "actions": [
+            {
+              "action": "read",
+              "policy": {
+                "database": "@item.user_id eq @claims.userId"
+              }
+            },
+            {
+              "action": "update",
+              "policy": {
+                "database": "@item.user_id eq @claims.userId"
+              }
+            },
+            {
+              "action": "delete",
+              "policy": {
+                "database": "@item.user_id eq @claims.userId"
+              }
+            },
+            {
+              "action": "create"
+            }
+          ]
+        }
+      ],
+      "relationships": {
+        "user": {
+          "cardinality": "one",
+          "target.entity": "User",
+          "source.fields": [
+            "user_id"
+          ],
+          "target.fields": [
+            "id"
+          ],
+          "linking.source.fields": [],
+          "linking.target.fields": []
+        }
+      }
+    },
+    "JournalEntry": {
+      "source": {
+        "object": "mind.journal_entries",
+        "type": "table"
+      },
+      "fields": [
+        {
+          "name": "user_id",
+          "alias": "userId",
+          "primary-key": false
+        },
+        {
+          "name": "entry_date",
+          "alias": "entryDate",
+          "primary-key": false
+        },
+        {
+          "name": "created_at",
+          "alias": "createdAt",
+          "primary-key": false
+        }
+      ],
+      "graphql": {
+        "enabled": true,
+        "type": {
+          "singular": "JournalEntry",
+          "plural": "JournalEntries"
+        }
+      },
+      "rest": {
+        "enabled": true
+      },
+      "permissions": [
+        {
+          "role": "authenticated",
+          "actions": [
+            {
+              "action": "read",
+              "policy": {
+                "database": "@item.user_id eq @claims.userId"
+              }
+            },
+            {
+              "action": "update",
+              "policy": {
+                "database": "@item.user_id eq @claims.userId"
+              }
+            },
+            {
+              "action": "delete",
+              "policy": {
+                "database": "@item.user_id eq @claims.userId"
+              }
+            },
+            {
+              "action": "create"
+            }
+          ]
+        }
+      ],
+      "relationships": {
+        "user": {
+          "cardinality": "one",
+          "target.entity": "User",
+          "source.fields": [
+            "user_id"
+          ],
+          "target.fields": [
+            "id"
+          ],
+          "linking.source.fields": [],
+          "linking.target.fields": []
+        }
+      }
+    },
+    "MeditationSession": {
+      "source": {
+        "object": "mind.meditation_sessions",
+        "type": "table"
+      },
+      "fields": [
+        {
+          "name": "user_id",
+          "alias": "userId",
+          "primary-key": false
+        },
+        {
+          "name": "session_date",
+          "alias": "sessionDate",
+          "primary-key": false
+        },
+        {
+          "name": "duration_minutes",
+          "alias": "durationMinutes",
+          "primary-key": false
+        },
+        {
+          "name": "meditation_type",
+          "alias": "meditationType",
+          "primary-key": false
+        },
+        {
+          "name": "mood_before",
+          "alias": "moodBefore",
+          "primary-key": false
+        },
+        {
+          "name": "mood_after",
+          "alias": "moodAfter",
+          "primary-key": false
+        },
+        {
+          "name": "created_at",
+          "alias": "createdAt",
+          "primary-key": false
+        }
+      ],
+      "graphql": {
+        "enabled": true,
+        "type": {
+          "singular": "MeditationSession",
+          "plural": "MeditationSessions"
+        }
+      },
+      "rest": {
+        "enabled": true
+      },
+      "permissions": [
+        {
+          "role": "authenticated",
+          "actions": [
+            {
+              "action": "read",
+              "policy": {
+                "database": "@item.user_id eq @claims.userId"
+              }
+            },
+            {
+              "action": "update",
+              "policy": {
+                "database": "@item.user_id eq @claims.userId"
+              }
+            },
+            {
+              "action": "delete",
+              "policy": {
+                "database": "@item.user_id eq @claims.userId"
+              }
+            },
+            {
+              "action": "create"
+            }
+          ]
+        }
+      ],
+      "relationships": {
+        "user": {
+          "cardinality": "one",
+          "target.entity": "User",
+          "source.fields": [
+            "user_id"
+          ],
+          "target.fields": [
+            "id"
+          ],
+          "linking.source.fields": [],
+          "linking.target.fields": []
+        }
+      }
+    },
+    "Budget": {
+      "source": {
+        "object": "plan.budgets",
+        "type": "table"
+      },
+      "fields": [
+        {
+          "name": "user_id",
+          "alias": "userId",
+          "primary-key": false
+        },
+        {
+          "name": "amount_limit",
+          "alias": "amountLimit",
+          "primary-key": false
+        },
+        {
+          "name": "currency_code",
+          "alias": "currencyCode",
+          "primary-key": false
+        },
+        {
+          "name": "start_date",
+          "alias": "startDate",
+          "primary-key": false
+        },
+        {
+          "name": "end_date",
+          "alias": "endDate",
+          "primary-key": false
+        },
+        {
+          "name": "created_at",
+          "alias": "createdAt",
+          "primary-key": false
+        }
+      ],
+      "graphql": {
+        "enabled": true,
+        "type": {
+          "singular": "Budget",
+          "plural": "Budgets"
+        }
+      },
+      "rest": {
+        "enabled": true
+      },
+      "permissions": [
+        {
+          "role": "authenticated",
+          "actions": [
+            {
+              "action": "read",
+              "policy": {
+                "database": "@item.user_id eq @claims.userId"
+              }
+            },
+            {
+              "action": "update",
+              "policy": {
+                "database": "@item.user_id eq @claims.userId"
+              }
+            },
+            {
+              "action": "delete",
+              "policy": {
+                "database": "@item.user_id eq @claims.userId"
+              }
+            },
+            {
+              "action": "create"
+            }
+          ]
+        }
+      ],
+      "relationships": {
+        "user": {
+          "cardinality": "one",
+          "target.entity": "User",
+          "source.fields": [
+            "user_id"
+          ],
+          "target.fields": [
+            "id"
+          ],
+          "linking.source.fields": [],
+          "linking.target.fields": []
+        }
+      }
+    },
+    "Goal": {
+      "source": {
+        "object": "plan.goals",
+        "type": "table"
+      },
+      "fields": [
+        {
+          "name": "user_id",
+          "alias": "userId",
+          "primary-key": false
+        },
+        {
+          "name": "target_amount",
+          "alias": "targetAmount",
+          "primary-key": false
+        },
+        {
+          "name": "current_amount",
+          "alias": "currentAmount",
+          "primary-key": false
+        },
+        {
+          "name": "currency_code",
+          "alias": "currencyCode",
+          "primary-key": false
+        },
+        {
+          "name": "due_date",
+          "alias": "dueDate",
+          "primary-key": false
+        },
+        {
+          "name": "created_at",
+          "alias": "createdAt",
+          "primary-key": false
+        }
+      ],
+      "graphql": {
+        "enabled": true,
+        "type": {
+          "singular": "Goal",
+          "plural": "Goals"
+        }
+      },
+      "rest": {
+        "enabled": true
+      },
+      "permissions": [
+        {
+          "role": "authenticated",
+          "actions": [
+            {
+              "action": "read",
+              "policy": {
+                "database": "@item.user_id eq @claims.userId"
+              }
+            },
+            {
+              "action": "update",
+              "policy": {
+                "database": "@item.user_id eq @claims.userId"
+              }
+            },
+            {
+              "action": "delete",
+              "policy": {
+                "database": "@item.user_id eq @claims.userId"
+              }
+            },
+            {
+              "action": "create"
+            }
+          ]
+        }
+      ],
+      "relationships": {
+        "user": {
+          "cardinality": "one",
+          "target.entity": "User",
+          "source.fields": [
+            "user_id"
+          ],
+          "target.fields": [
+            "id"
+          ],
+          "linking.source.fields": [],
+          "linking.target.fields": []
+        }
+      }
+    }
+  }
+}
