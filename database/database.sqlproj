@@ -22,7 +22,7 @@
     <SqlServerVerification>False</SqlServerVerification>
     <IncludeCompositeObjects>True</IncludeCompositeObjects>
     <TargetDatabaseSet>True</TargetDatabaseSet>
-    <TargetDatabase>database</TargetDatabase>
+    <TargetDatabase>fin_pulse</TargetDatabase>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
     <OutputPath>bin\Release\</OutputPath>
@@ -65,23 +65,35 @@
     <Folder Include="PostDeployment\MigrationScripts" />
   </ItemGroup>
   <ItemGroup>
-    <Build Include="Tables\tenants.sql" />
+    <Build Include="Security\finance.sql" />
+    <Build Include="Security\plan.sql" />
+    <Build Include="Security\reporting.sql" />
+    <Build Include="Security\investment.sql" />
+    <Build Include="Security\body.sql" />
+    <Build Include="Security\mind.sql" />
+  </ItemGroup>
+  <ItemGroup>
     <Build Include="Tables\users.sql" />
-    <Build Include="Tables\drivers.sql" />
-    <Build Include="Tables\vehicles.sql" />
-    <Build Include="Tables\devices.sql" />
-    <Build Include="Tables\geofences.sql" />
-    <Build Include="Tables\alarm_types.sql" />
-    <Build Include="Tables\tracks.sql" />
-    <Build Include="Tables\stops.sql" />
-    <Build Include="Tables\points.sql" />
-    <Build Include="Tables\alarms.sql" />
-    <Build Include="Tables\logs.sql" />
+    <Build Include="Tables\plan.budgets.sql" />
+    <Build Include="Tables\plan.goals.sql" />
+    <Build Include="Tables\finance.earnings.sql" />
+    <Build Include="Tables\finance.expenses.sql" />
+    <Build Include="Tables\finance.investments.sql" />
+    <Build Include="Tables\finance.bills.sql" />
+    <Build Include="Tables\investment.stocks.sql" />
+    <Build Include="Tables\investment.cryptos.sql" />
+    <Build Include="Tables\investment.currencies.sql" />
+    <Build Include="Tables\body.weekly_routines.sql" />
+    <Build Include="Tables\body.workouts.sql" />
+    <Build Include="Tables\body.personal_records.sql" />
+    <Build Include="Tables\body.meals.sql" />
+    <Build Include="Tables\body.water_intake.sql" />
+    <Build Include="Tables\body.body_metrics.sql" />
+    <Build Include="Tables\body.sleep_logs.sql" />
+    <Build Include="Tables\mind.meditation_sessions.sql" />
+    <Build Include="Tables\mind.journal_entries.sql" />
   </ItemGroup>
   <ItemGroup>
     <PostDeploy Include="PostDeployment\Script.PostDeployment.sql" />
-  </ItemGroup>
-  <ItemGroup>
-    <None Include="PostDeployment\MigrationScripts\1.0.0_SeedAlarmTypes.sql" />
   </ItemGroup>
 </Project>

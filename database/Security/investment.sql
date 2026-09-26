@@ -1,0 +1,2 @@
+CREATE SCHEMA [investment] AUTHORIZATION [dbo];
+GO

@@ -1,24 +1,17 @@
--- Login accounts (email + password) that manage a tenant's fleet.
+-- Registered application users and their authentication data (root of the multi-schema fin_pulse app).
 CREATE TABLE [dbo].[users]
 (
-    [id]         INT IDENTITY (1, 1) PRIMARY KEY NOT NULL, -- 4 bytes
-    [tenant_id]  INT            NOT NULL,                   -- 4 bytes
-    [email]      VARCHAR(100)   NOT NULL,                   -- ~25 bytes avg (100 bytes max)
-    [password]   NVARCHAR(1024) NOT NULL,                   -- ~120 bytes avg (60-char hash, 2048 bytes max)
-    [full_name]  NVARCHAR(200)  NOT NULL,                   -- ~40 bytes avg (20 chars typical, 400 bytes max)
-    [is_active]  BIT            NOT NULL DEFAULT 1,          -- 1 byte
-    [created_at] DATETIME       NOT NULL DEFAULT GETDATE(), -- 8 bytes
-    CONSTRAINT [FK_users_tenants] FOREIGN KEY ([tenant_id]) REFERENCES [dbo].[tenants] ([id])
+    [id]           INT            IDENTITY (1, 1) PRIMARY KEY NOT NULL, -- 4 bytes
+    [username]     VARCHAR(100)   NOT NULL,                             -- ~25 bytes avg (100 bytes max)
+    [phone_number] VARCHAR(15)    NULL,                                 -- ~10 bytes avg (15 bytes max)
+    [email]        VARCHAR(100)   NOT NULL,                             -- ~25 bytes avg (100 bytes max)
+    [password]     NVARCHAR(1024) NULL,                                 -- ~120 bytes avg (60-char hash, 2048 bytes max)
+    [created_at]   DATETIME       NOT NULL DEFAULT GETDATE(),           -- 8 bytes
+    [status]       TINYINT        NOT NULL DEFAULT 1                    -- 1 byte
 );
--- Estimated row size: 4 + 4 + 25 + 120 + 40 + 1 + 8 = ~202 bytes
--- Plus row overhead (~7 bytes) = ~209 bytes per row
--- 1 million rows ≈ 199 MB
-GO
-
-CREATE UNIQUE INDEX [UX_users_email] ON [dbo].[users]([email]);
-GO
-
-CREATE INDEX [IX_users_tenant_id] ON [dbo].[users]([tenant_id]);
+-- Estimated row size: 4 + 25 + 10 + 25 + 120 + 8 + 1 = ~193 bytes
+-- Plus row overhead (~7 bytes) = ~200 bytes per row
+-- 1 million rows ≈ 191 MB
 GO
 
 ------------------------------------------------------------
@@ -26,7 +19,7 @@ GO
 ------------------------------------------------------------
 EXEC sp_addextendedproperty
     @name = N'MS_Description',
-    @value = N'Login accounts (email + password) that manage a tenant''s fleet.',
+    @value = N'Stores registered application users and their authentication data.',
     @level0type = N'Schema', @level0name = N'dbo',
     @level1type = N'Table',  @level1name = N'users';
 GO
@@ -45,15 +38,23 @@ GO
 
 EXEC sp_addextendedproperty
     @name = N'MS_Description',
-    @value = N'Tenant this user account belongs to. References tenants.id. INT.',
+    @value = N'Public username chosen by the user. VARCHAR(100).',
     @level0type = N'Schema', @level0name = N'dbo',
     @level1type = N'Table',  @level1name = N'users',
-    @level2type = N'Column', @level2name = N'tenant_id';
+    @level2type = N'Column', @level2name = N'username';
 GO
 
 EXEC sp_addextendedproperty
     @name = N'MS_Description',
-    @value = N'Login email address, unique across all tenants. VARCHAR(100).',
+    @value = N'Optional phone number used for contact or verification. VARCHAR(15).',
+    @level0type = N'Schema', @level0name = N'dbo',
+    @level1type = N'Table',  @level1name = N'users',
+    @level2type = N'Column', @level2name = N'phone_number';
+GO
+
+EXEC sp_addextendedproperty
+    @name = N'MS_Description',
+    @value = N'Primary email address of the user (used for login and notifications). VARCHAR(100).',
     @level0type = N'Schema', @level0name = N'dbo',
     @level1type = N'Table',  @level1name = N'users',
     @level2type = N'Column', @level2name = N'email';
@@ -69,24 +70,16 @@ GO
 
 EXEC sp_addextendedproperty
     @name = N'MS_Description',
-    @value = N'Display name of the user. NVARCHAR(200).',
-    @level0type = N'Schema', @level0name = N'dbo',
-    @level1type = N'Table',  @level1name = N'users',
-    @level2type = N'Column', @level2name = N'full_name';
-GO
-
-EXEC sp_addextendedproperty
-    @name = N'MS_Description',
-    @value = N'Whether the account can log in (1) or is disabled (0). BIT.',
-    @level0type = N'Schema', @level0name = N'dbo',
-    @level1type = N'Table',  @level1name = N'users',
-    @level2type = N'Column', @level2name = N'is_active';
-GO
-
-EXEC sp_addextendedproperty
-    @name = N'MS_Description',
-    @value = N'Timestamp when the user record was created. DATETIME.',
+    @value = N'Date and time when the user record was created. DATETIME.',
     @level0type = N'Schema', @level0name = N'dbo',
     @level1type = N'Table',  @level1name = N'users',
     @level2type = N'Column', @level2name = N'created_at';
+GO
+
+EXEC sp_addextendedproperty
+    @name = N'MS_Description',
+    @value = N'User status flag (1 = active, 0 = inactive, others for future states). TINYINT.',
+    @level0type = N'Schema', @level0name = N'dbo',
+    @level1type = N'Table',  @level1name = N'users',
+    @level2type = N'Column', @level2name = N'status';
 GO

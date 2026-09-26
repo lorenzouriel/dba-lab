@@ -1,7 +1,8 @@
 # database/
 
-A SQL Server Database Project (SSDT) for a multi-tenant vehicle/GPS tracking
-system, buildable from Visual Studio or the `msbuild`/`dotnet build` CLI into a
+A SQL Server Database Project (SSDT) modeling **fin_pulse**, a personal
+finance + health tracker (based on [bthr](https://github.com/lorenzouriel/bthr)),
+buildable from Visual Studio or the `msbuild`/`dotnet build` CLI into a
 `.dacpac`, then deployed with `SqlPackage`.
 
 ## Structure
@@ -14,7 +15,7 @@ database/
 ├── Views/
 ├── StoredProcedures/
 ├── Functions/
-├── Security/
+├── Security/          # CREATE SCHEMA scripts
 ├── Properties/
 └── PostDeployment/
     └── MigrationScripts/
@@ -25,27 +26,36 @@ The project targets SQL Server 2019 (`Sql150DatabaseSchemaProvider`) — change 
 
 ## Schema
 
-Everything except `alarm_types` is scoped to a `tenant_id` (multi-tenant: one
-customer's fleet is invisible to another's).
+Every table except `dbo.users` carries a `user_id` FK back to it. Tables are
+split across schemas by domain:
 
-| Table         | Purpose                                                                 |
-|---------------|--------------------------------------------------------------------------|
-| `tenants`     | Customer/company that owns vehicles, devices and users.                 |
-| `users`       | Login accounts (email + password) that manage a tenant's fleet.         |
-| `drivers`     | People assigned to vehicles; don't necessarily log in.                  |
-| `vehicles`    | A tenant's fleet, optionally with a current `driver_id`.                |
-| `devices`     | GPS hardware, optionally installed in a `vehicle_id`.                   |
-| `geofences`   | Named circular zones (center + radius) used to trigger alarms.          |
-| `alarm_types` | Fixed lookup of alarm kinds (speeding, sos, geofence, ...), seeded via PostDeployment. |
-| `tracks`      | A trip: the in-motion segment of a vehicle's journey.                   |
-| `stops`       | A stationary period, optionally tied to the track it ended.             |
-| `points`      | Raw GPS pings from a device; grouped into `tracks`/`stops` downstream.  |
-| `alarms`      | Triggered alarm events, optionally tied to a `geofence`.                |
-| `logs`        | Audit trail of actions (`entity_type`/`entity_id` point at the row).    |
+| Schema | Table | Purpose |
+|--------|-------|---------|
+| `dbo` | `users` | Login accounts (username/email + password) — root of the app. |
+| `plan` | `budgets` | Spending limits with a date range. |
+| `plan` | `goals` | Savings goals with a target/current amount and due date. |
+| `finance` | `earnings` | Income records (salary, bonus, freelance, ...). |
+| `finance` | `expenses` | Spending records with category and payment method. |
+| `finance` | `investments` | A user's individual investment positions (broker, invested amount, current value, yield). |
+| `finance` | `bills` | Recurring/one-off payment obligations with due-date tracking. |
+| `investment` | `stocks` | Market OHLCV price history for stocks (reference data, not user-scoped). |
+| `investment` | `cryptos` | Market OHLCV price history for cryptocurrencies (reference data). |
+| `investment` | `currencies` | Historical FX rates between a currency and a base currency (reference data). |
+| `body` | `weekly_routines` | Template: the usual planned routine per day of week. |
+| `body` | `workouts` | A logged training session. |
+| `body` | `personal_records` | Append-only PR history per exercise/metric. |
+| `body` | `meals` | Per-meal nutrition log (calories, macros). |
+| `body` | `water_intake` | Daily running total of water consumed. |
+| `body` | `body_metrics` | Weight/height/body-fat measurements over time. |
+| `body` | `sleep_logs` | Bed/wake time per night; `total_hours` is a computed column. |
+| `mind` | `meditation_sessions` | Per-session meditation log with before/after mood. |
+| `mind` | `journal_entries` | Free-form journal entries with optional mood/category. |
+
+`reporting` is also created (via `Security\reporting.sql`) but currently holds
+no objects — reserved for future aggregation views.
 
 All FKs are real constraints (not just indexed columns) for referential
-integrity. `points` and `alarms` use `BIGINT` identities since they're the
-highest-volume, time-series tables.
+integrity, and `user_id` FKs on the `body`/`mind` tables cascade on delete.
 
 ## Build
 
@@ -60,7 +70,7 @@ This produces `bin/Release/database.dacpac`.
 ```powershell
 SqlPackage /Action:Publish `
   /SourceFile:bin\Release\database.dacpac `
-  /TargetConnectionString:"Server=localhost;Database=database;User Id=sa;Password=<password>;TrustServerCertificate=True"
+  /TargetConnectionString:"Server=localhost;Database=fin_pulse;User Id=sa;Password=<password>;TrustServerCertificate=True"
 ```
 
 See [`lab-ag-&-cicd/`](../labs/lab-ag-&-cicd/) for a full worked example of this
