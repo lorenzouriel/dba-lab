@@ -33,6 +33,10 @@ GO
 :r /database/Security/reporting.sql
 :r /database/Security/body.sql
 :r /database/Security/mind.sql
+:r /database/Security/sec.sql
+:r /database/Security/roles.sql
+:r /database/Security/ae.cmk.sql
+:r /database/Security/ae.cek.sql
 
 :r /database/Tables/users.sql
 :r /database/Tables/plan.budgets.sql
@@ -54,6 +58,9 @@ GO
 :r /database/Tables/body.symptom_logs.sql
 :r /database/Tables/mind.meditation_sessions.sql
 :r /database/Tables/mind.journal_entries.sql
+
+:r /database/Functions/sec.fn_user_access_predicate.sql
+:r /database/Security/sec.user_isolation_policy.sql
 
 PRINT 'fin_pulse schema deployed.';
 GO

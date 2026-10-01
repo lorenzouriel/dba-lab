@@ -3,9 +3,9 @@ CREATE TABLE [dbo].[users]
 (
     [id]           INT            IDENTITY (1, 1) PRIMARY KEY NOT NULL, -- 4 bytes
     [username]     VARCHAR(100)   NOT NULL,                             -- ~25 bytes avg (100 bytes max)
-    [phone_number] VARCHAR(15)    NULL,                                 -- ~10 bytes avg (15 bytes max)
-    [email]        VARCHAR(100)   NOT NULL,                             -- ~25 bytes avg (100 bytes max)
-    [password]     NVARCHAR(1024) NULL,                                 -- ~120 bytes avg (60-char hash, 2048 bytes max)
+    [phone_number] VARCHAR(15)    MASKED WITH (FUNCTION = 'partial(0, "XXXXXX", 4)') NULL, -- ~10 bytes avg (15 bytes max); shows last 4 digits
+    [email]        VARCHAR(100)   MASKED WITH (FUNCTION = 'email()') NOT NULL,              -- ~25 bytes avg (100 bytes max); aXXX@XXXX.com
+    [password]     NVARCHAR(1024) MASKED WITH (FUNCTION = 'default()') NULL,                -- ~120 bytes avg (60-char hash, 2048 bytes max); xxxx
     [created_at]   DATETIME       NOT NULL DEFAULT GETDATE(),           -- 8 bytes
     [status]       TINYINT        NOT NULL DEFAULT 1                    -- 1 byte
 );

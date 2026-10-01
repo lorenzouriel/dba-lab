@@ -60,11 +60,16 @@ integrity, and `user_id` FKs on the `body`/`mind` tables cascade on delete.
 
 ## Build
 
+The project is SDK-style (`Microsoft.Build.Sql`) and targets Azure SQL Database
+(`SqlAzureV12DatabaseSchemaProvider`). It builds on any OS:
+
 ```powershell
-msbuild database.sqlproj /p:Configuration=Release
+dotnet build database.sqlproj -c Release
 ```
 
-This produces `bin/Release/database.dacpac`.
+This produces `bin/Release/database.dacpac`. `Build` items are listed explicitly
+(`EnableDefaultSqlItems=false`) because `database.tests` reads that order to deploy
+the schema; add each new `.sql` file to `database.sqlproj`.
 
 ## Deploy
 
@@ -73,6 +78,26 @@ SqlPackage /Action:Publish `
   /SourceFile:bin\Release\database.dacpac `
   /TargetConnectionString:"Server=localhost;Database=fin_pulse;User Id=sa;Password=<password>;TrustServerCertificate=True"
 ```
+
+## CI/CD
+
+[`db-pipeline.yml`](../.github/workflows/db-pipeline.yml) builds the dacpac and runs
+[`database.tests`](../database.tests) on every PR and push; deploys go through
+[`db-deploy.yml`](../.github/workflows/db-deploy.yml) to Azure SQL Database:
+
+| Trigger | Deploys to | Data-loss guard |
+|---|---|---|
+| push to `dev` | `dev` | off |
+| push to `main` | `qa` | on |
+| tag `v*` | `prod` | on (add required reviewers on the `prod` Environment) |
+
+Auth is GitHub OIDC to an Entra app registration (no stored secrets). Each GitHub
+Environment (`dev`, `qa`, `prod`) needs these **variables**: `AZURE_CLIENT_ID`,
+`AZURE_TENANT_ID`, `AZURE_SUBSCRIPTION_ID`, `SQL_SERVER` (e.g.
+`sql-labdba-dev.database.windows.net`) and `SQL_DATABASE`. The app registration needs a
+federated credential for that Environment and a contained user in the target database
+(`CREATE USER [<app name>] FROM EXTERNAL PROVIDER; ALTER ROLE db_owner ADD MEMBER [<app name>];`),
+and the server firewall must allow GitHub runners.
 
 See [`lab-ag-&-cicd/`](../labs/lab-ag-&-cicd/) for a full worked example of this
 pattern (schema, PostDeployment seed data, Docker-based dev/staging/prod pipeline).

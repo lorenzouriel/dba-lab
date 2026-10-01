@@ -7,7 +7,7 @@ CREATE TABLE [body].[symptom_logs]
     [log_date]    DATE         NOT NULL,                             -- 3 bytes
     [symptom]     VARCHAR(100) NOT NULL,                             -- ~25 bytes avg (100 bytes max)
     [severity]    SMALLINT     NULL,                                 -- 2 bytes
-    [notes]       VARCHAR(500) NULL,                                 -- ~60 bytes avg (500 bytes max)
+    [notes]       VARCHAR(500) ENCRYPTED WITH (COLUMN_ENCRYPTION_KEY = [CEK_fin_pulse], ENCRYPTION_TYPE = RANDOMIZED, ALGORITHM = 'AEAD_AES_256_CBC_HMAC_SHA_256') NULL, -- Always Encrypted; ~60 bytes avg + 65 bytes ciphertext overhead
     [status]      TINYINT      NOT NULL DEFAULT 1,                   -- 1 byte
     [created_at]  DATETIME     NOT NULL DEFAULT GETDATE(),           -- 8 bytes
     CONSTRAINT [FK_symptom_logs_users] FOREIGN KEY ([user_id]) REFERENCES [dbo].[users] ([id]) ON DELETE CASCADE,
@@ -74,7 +74,7 @@ GO
 
 EXEC sp_addextendedproperty
     @name = N'MS_Description',
-    @value = N'Optional free-text notes about the symptom or its context. VARCHAR(500).',
+    @value = N'Optional free-text notes about the symptom or its context. VARCHAR(500). Always Encrypted (randomized): not filterable or maskable; clients need Column Encryption Setting=Enabled and the CMK.',
     @level0type = N'Schema', @level0name = N'body',
     @level1type = N'Table',  @level1name = N'symptom_logs',
     @level2type = N'Column', @level2name = N'notes';

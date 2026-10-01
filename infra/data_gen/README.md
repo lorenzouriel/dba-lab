@@ -3,8 +3,8 @@
 A small Python generator that fills the [`database/`](../../database/)
 `fin_pulse` schema (personal finance + health tracker) with believable,
 **heavily-used** daily activity: 50 users by default, each logging several
-expenses a day, three-plus meals a day, a water-intake row, a sleep log, and
-most days a journal entry -- across a full year ending today. A full default
+expenses a day, three-plus meals a day, a water-intake row, and a sleep log
+-- across a full year ending today. A full default
 run generates around 270k rows in total (measured), in well under 15 seconds.
 
 It has two modes: `backfill` (a historical batch, described below) and
@@ -36,9 +36,15 @@ plus `pyodbc` + `executemany`. Reproducible via `--seed` (`backfill` only --
 | `body.body_metrics` | weekly per user |
 | `body.habits`, `body.habit_logs` | 3-5 habits per user, logged ~90% of days (~75% completed) |
 | `body.substance_logs` | caffeine most days; alcohol occasional, more likely on weekends |
-| `body.symptom_logs` | 2-5 sparse off-days per user over the window |
+| `body.symptom_logs` | 2-5 sparse off-days per user over the window (`notes` left NULL, see below) |
 | `mind.meditation_sessions` | ~45% of days per user |
-| `mind.journal_entries` | ~70% of days per user |
+| `mind.journal_entries` | **not generated** -- see below |
+
+`mind.journal_entries.content` and `body.symptom_logs.notes` are Always Encrypted
+(see [`../always-encrypted/`](../always-encrypted/)). pyodbc in this container has no
+key-store provider, so it can't write ciphertext: journal entries are skipped
+(`content` is NOT NULL) and `notes` is omitted. Write those columns from a
+client that registers the CMK provider (the .NET tests do).
 
 ## Usage
 
@@ -63,7 +69,7 @@ up further if you want a heavier dataset (e.g. for testing index/query
 performance), or down for a quick smoke test.
 
 **`stream`** logs a handful of "right now" rows (an expense, a water top-up,
-a meal, a habit check-off, a caffeine log, or a journal entry -- weighted
+a meal, a habit check-off, or a caffeine log -- weighted
 towards expenses, same as real usage) for 1-3 random *existing* users every
 `--interval` seconds, committing after each tick. It needs `dbo.users`
 already populated, so run `backfill` at least once first. Two ways to run it:

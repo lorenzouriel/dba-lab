@@ -4,8 +4,8 @@ CREATE TABLE [mind].[journal_entries]
     [id]          INT           IDENTITY (1, 1) PRIMARY KEY NOT NULL, -- 4 bytes
     [user_id]     INT           NOT NULL,                             -- 4 bytes
     [entry_date]  DATE          NOT NULL,                             -- 3 bytes
-    [title]       VARCHAR(200)  NULL,                                 -- ~40 bytes avg (200 bytes max)
-    [content]     NVARCHAR(MAX) NOT NULL,                             -- variable, off-row when large
+    [title]       VARCHAR(200)  MASKED WITH (FUNCTION = 'default()') NULL,     -- ~40 bytes avg (200 bytes max)
+    [content]     NVARCHAR(MAX) ENCRYPTED WITH (COLUMN_ENCRYPTION_KEY = [CEK_fin_pulse], ENCRYPTION_TYPE = RANDOMIZED, ALGORITHM = 'AEAD_AES_256_CBC_HMAC_SHA_256') NOT NULL, -- Always Encrypted; ciphertext ~ plaintext + 65 bytes, off-row when large
     [mood]        SMALLINT      NULL,                                 -- 2 bytes
     [category]    VARCHAR(50)   NULL,                                 -- ~15 bytes avg (50 bytes max)
     [status]      TINYINT       NOT NULL DEFAULT 1,                   -- 1 byte
@@ -65,7 +65,7 @@ GO
 
 EXEC sp_addextendedproperty
     @name = N'MS_Description',
-    @value = N'Full text of the journal entry. NVARCHAR(MAX).',
+    @value = N'Full text of the journal entry. NVARCHAR(MAX). Always Encrypted (randomized): not filterable or maskable; clients need Column Encryption Setting=Enabled and the CMK.',
     @level0type = N'Schema', @level0name = N'mind',
     @level1type = N'Table',  @level1name = N'journal_entries',
     @level2type = N'Column', @level2name = N'content';

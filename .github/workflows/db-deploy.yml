@@ -1,0 +1,47 @@
+name: Deploy database (reusable)
+
+on:
+  workflow_call:
+    inputs:
+      environment:
+        description: GitHub Environment to deploy to (dev, qa, prod)
+        required: true
+        type: string
+      block-data-loss:
+        description: Fail the publish if the schema change could lose data
+        required: false
+        type: boolean
+        default: true
+
+permissions:
+  contents: read
+  id-token: write
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    environment: ${{ inputs.environment }}
+    # One deploy per environment at a time; never cancel one that is mid-publish.
+    concurrency:
+      group: db-deploy-${{ inputs.environment }}
+      cancel-in-progress: false
+    steps:
+      - uses: actions/download-artifact@v4
+        with:
+          name: database-dacpac
+          path: dacpac
+
+      - name: Azure login (OIDC)
+        uses: azure/login@v2
+        with:
+          client-id: ${{ vars.AZURE_CLIENT_ID }}
+          tenant-id: ${{ vars.AZURE_TENANT_ID }}
+          subscription-id: ${{ vars.AZURE_SUBSCRIPTION_ID }}
+
+      - name: Publish dacpac to ${{ inputs.environment }}
+        uses: azure/sql-action@v2.3
+        with:
+          connection-string: Server=${{ vars.SQL_SERVER }};Initial Catalog=${{ vars.SQL_DATABASE }};Authentication=Active Directory Default;Encrypt=True
+          path: dacpac/database.dacpac
+          action: publish
+          arguments: /p:BlockOnPossibleDataLoss=${{ inputs.block-data-loss }} /p:DropObjectsNotInSource=false

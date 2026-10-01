@@ -1,8 +1,4 @@
 -- Nightly sleep log: bed time, wake time, and total hours slept (computed automatically, cannot be set directly).
--- QUOTED_IDENTIFIER must be ON to create a table with a PERSISTED computed column.
-SET QUOTED_IDENTIFIER ON;
-GO
-
 CREATE TABLE [body].[sleep_logs]
 (
     [id]          INT          IDENTITY (1, 1) PRIMARY KEY NOT NULL,             -- 4 bytes

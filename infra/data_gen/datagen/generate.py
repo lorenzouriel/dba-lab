@@ -1,12 +1,16 @@
 """Generates believable, heavy-daily-use activity for the fin_pulse schema
 (see ../../database/). Ten users by default, each logging expenses, meals,
-water, sleep, habits, substance intake, and journal entries most days over
+water, sleep, habits, and substance intake most days over
 the backfill window -- a "highly" active user profile, not a sparse/occasional
 one.
 
 Kept deliberately simple: plain pyodbc + executemany, no ORM, no Faker
 (a small hardcoded Brazilian-Portuguese name/category pool is enough for a
 lab dataset). Reproducible via --seed.
+
+mind.journal_entries.content and body.symptom_logs.notes are Always Encrypted;
+pyodbc has no key-store provider here, so journal entries are not generated
+and symptom_logs rows leave notes NULL (omitted from the INSERT).
 """
 
 import random
@@ -72,16 +76,6 @@ SNACK_TYPE = "Lanche"
 
 MEDITATION_TYPES = ["Guiada", "Respiracao", "Body Scan", "Mindfulness"]
 
-JOURNAL_CATEGORIES = ["Gratidao", "Reflexao", "Metas", "Trabalho", "Relacionamentos"]
-JOURNAL_SNIPPETS = [
-    "Dia produtivo, consegui terminar as tarefas planejadas.",
-    "Me senti um pouco cansado, preciso descansar mais.",
-    "Boa conversa com a familia hoje.",
-    "Fechei uma meta pequena, mas importante.",
-    "Ansioso com o trabalho, mas tentando manter o foco.",
-    "Gratidao pelas pequenas coisas do dia.",
-]
-
 # (name, category, target_frequency) -- "Weekly" habits only get logged on Mondays
 HABIT_TEMPLATES = [
     ("Tomar Vitaminas", "Saude", "Daily"),
@@ -107,7 +101,6 @@ STREAM_ACTIVITY_WEIGHTS = [
     ("meal", 15),
     ("habit_check", 15),
     ("substance", 7),
-    ("journal", 3),
 ]
 
 
@@ -575,15 +568,15 @@ def insert_symptom_logs(cursor, user_ids: list[int], start: date, end: date, rng
         for _ in range(rng.randint(2, 5)):  # a handful of off days per user over the window
             day = start + timedelta(days=rng.randint(0, window_days))
             rows.append((
-                uid, day, rng.choice(SYMPTOM_NAMES), rng.randint(1, 5), None,
+                uid, day, rng.choice(SYMPTOM_NAMES), rng.randint(1, 5),
                 datetime.combine(day, _rand_time(rng)),
             ))
     if rows:
         cursor.fast_executemany = True
         cursor.executemany(
             """
-            INSERT INTO body.symptom_logs (user_id, log_date, symptom, severity, notes, created_at)
-            VALUES (?, ?, ?, ?, ?, ?)
+            INSERT INTO body.symptom_logs (user_id, log_date, symptom, severity, created_at)
+            VALUES (?, ?, ?, ?, ?)
             """,
             rows,
         )
@@ -608,30 +601,6 @@ def insert_meditation_sessions(cursor, user_ids: list[int], start: date, end: da
             INSERT INTO mind.meditation_sessions
                 (user_id, session_date, duration_minutes, meditation_type, mood_before, mood_after, notes, created_at)
             VALUES (?, ?, ?, ?, ?, ?, ?, ?)
-            """,
-            rows,
-        )
-
-
-def insert_journal_entries(cursor, user_ids: list[int], start: date, end: date, rng: random.Random) -> None:
-    rows = []
-    for uid in user_ids:
-        for day in _daterange(start, end):
-            if rng.random() >= 0.7:
-                continue
-            title = rng.choice(JOURNAL_CATEGORIES) if rng.random() < 0.5 else None
-            mood = rng.randint(1, 5) if rng.random() < 0.8 else None
-            category = rng.choice(JOURNAL_CATEGORIES) if rng.random() < 0.7 else None
-            rows.append((
-                uid, day, title, rng.choice(JOURNAL_SNIPPETS), mood, category,
-                datetime.combine(day, _rand_time(rng)),
-            ))
-    if rows:
-        cursor.fast_executemany = True
-        cursor.executemany(
-            """
-            INSERT INTO mind.journal_entries (user_id, entry_date, title, content, mood, category, created_at)
-            VALUES (?, ?, ?, ?, ?, ?, ?)
             """,
             rows,
         )
@@ -671,7 +640,6 @@ def backfill(conn, users_n: int, days: int, seed: int, reset: bool) -> None:
     insert_substance_logs(cursor, user_ids, start, today, rng)
     insert_symptom_logs(cursor, user_ids, start, today, rng)
     insert_meditation_sessions(cursor, user_ids, start, today, rng)
-    insert_journal_entries(cursor, user_ids, start, today, rng)
 
     conn.commit()
     print("Done.")
@@ -785,18 +753,6 @@ def _stream_substance(cursor, uid: int, rng: random.Random) -> str:
     return "caffeine logged"
 
 
-def _stream_journal(cursor, uid: int, rng: random.Random) -> str:
-    cursor.execute(
-        """
-        INSERT INTO mind.journal_entries (user_id, entry_date, title, content, mood, category, created_at)
-        VALUES (?, ?, ?, ?, ?, ?, ?)
-        """,
-        uid, date.today(), None, rng.choice(JOURNAL_SNIPPETS), rng.randint(1, 5),
-        rng.choice(JOURNAL_CATEGORIES), datetime.now(),
-    )
-    return "journal entry"
-
-
 def stream_tick(cursor, user_ids: list[int], habits: dict[int, list[int]], rng: random.Random) -> list[str]:
     """One cycle of 'right now' activity for a handful of random users -- inserts/upserts using
     today's date and the current timestamp, unlike backfill's historical window."""
@@ -813,7 +769,6 @@ def stream_tick(cursor, user_ids: list[int], habits: dict[int, list[int]], rng: 
                 "water": _stream_water,
                 "meal": _stream_meal,
                 "substance": _stream_substance,
-                "journal": _stream_journal,
             }[activity](cursor, uid, rng)
         if result:
             events.append(f"user {uid}: {result}")

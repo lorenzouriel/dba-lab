@@ -1,0 +1,71 @@
+name: Database CI/CD
+
+# PR            -> build + tests
+# push to dev   -> build + tests -> deploy dev
+# push to main  -> build + tests -> deploy qa
+# tag v*        -> build + tests -> deploy prod (GitHub Environment approval)
+
+on:
+  pull_request:
+    branches: [dev, main]
+    paths:
+      - "database/**"
+      - "database.tests/**"
+      - ".github/workflows/db-*.yml"
+      - ".github/workflows/database-tests.yml"
+  push:
+    branches: [dev, main]
+    tags: ["v*"]
+    paths:
+      - "database/**"
+      - "database.tests/**"
+      - ".github/workflows/db-*.yml"
+      - ".github/workflows/database-tests.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  tests:
+    uses: ./.github/workflows/database-tests.yml
+
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: 10.0.x
+
+      - name: Build dacpac
+        run: dotnet build database/database.sqlproj -c Release --nologo
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: database-dacpac
+          path: database/bin/Release/database.dacpac
+          if-no-files-found: error
+
+  deploy-dev:
+    if: github.event_name == 'push' && github.ref == 'refs/heads/dev'
+    needs: [tests, build]
+    uses: ./.github/workflows/db-deploy.yml
+    with:
+      environment: dev
+      block-data-loss: false
+
+  deploy-qa:
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+    needs: [tests, build]
+    uses: ./.github/workflows/db-deploy.yml
+    with:
+      environment: qa
+
+  deploy-prod:
+    if: github.event_name == 'push' && startsWith(github.ref, 'refs/tags/v')
+    needs: [tests, build]
+    uses: ./.github/workflows/db-deploy.yml
+    with:
+      environment: prod
