@@ -17,13 +17,12 @@ This page uses the Azure CLI and `gh`. For the same steps as portal and GitHub U
 
 ## 1. How the pipeline works
 
-Three workflows in [.github/workflows/](.github/workflows/):
+Two workflows in [.github/workflows/](.github/workflows/):
 
 | File | Role |
 |---|---|
-| [db-pipeline.yml](.github/workflows/db-pipeline.yml) | Entry point. Decides what runs for each trigger. |
+| [db-pipeline.yml](.github/workflows/db-pipeline.yml) | Entry point. Decides what runs for each trigger, builds the dacpac, and has the `deploy` job (it picks the `dev`, `qa` or `prod` Environment from the branch or tag, logs in to Azure with OIDC and publishes). |
 | [database-tests.yml](.github/workflows/database-tests.yml) | Reusable. Runs [database.tests](database.tests) against a throwaway SQL Server 2022 container. |
-| [db-deploy.yml](.github/workflows/db-deploy.yml) | Reusable. Logs in to Azure with OIDC and publishes the dacpac to one environment. |
 
 ```
  PR to dev/main ──► tests ─┐
@@ -31,15 +30,15 @@ Three workflows in [.github/workflows/](.github/workflows/):
                     build ─┘
 
  push to dev   ──► tests ─┐
-                          ├─► deploy-dev   (Environment: dev)
+                          ├─► deploy       (Environment: dev)
                    build ─┘
 
  push to main  ──► tests ─┐
-                          ├─► deploy-qa    (Environment: qa)
+                          ├─► deploy       (Environment: qa)
                    build ─┘
 
  tag v*        ──► tests ─┐
-                          ├─► deploy-prod  (Environment: prod, needs approval)
+                          ├─► deploy       (Environment: prod, needs approval)
                    build ─┘
 ```
 
@@ -283,7 +282,7 @@ Without this, a broken change can reach `dev`/`qa` by direct push, and the pipel
 ## 5. First run and verification
 
 1. Commit and push the workflows to `dev`. The first push to `dev` runs the whole chain and deploys to the dev database.
-2. In the Actions tab, open **Database CI/CD**. You should see `tests`, `build` and `deploy-dev`.
+2. In the Actions tab, open **Database CI/CD**. You should see `tests`, `build` and `deploy` (running in the `dev` Environment).
 3. Confirm in the database:
 
    ```sql

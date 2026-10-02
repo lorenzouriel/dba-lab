@@ -196,7 +196,7 @@ Each Environment gets its own client ID and server name. Because `SQL_DATABASE` 
 ### 5. First run
 
 1. Push the workflow files to `dev`. This runs **Database CI/CD**.
-2. Open the **Actions** tab. You should see `tests`, `build` and `deploy-dev` all succeed.
+2. Open the **Actions** tab. You should see `tests`, `build` and `deploy` (in the `dev` Environment) all succeed.
 3. Verify in the Azure query editor on `fin_pulse`:
 
    ```sql

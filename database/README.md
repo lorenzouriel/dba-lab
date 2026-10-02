@@ -82,8 +82,8 @@ SqlPackage /Action:Publish `
 ## CI/CD
 
 [`db-pipeline.yml`](../.github/workflows/db-pipeline.yml) builds the dacpac and runs
-[`database.tests`](../database.tests) on every PR and push; deploys go through
-[`db-deploy.yml`](../.github/workflows/db-deploy.yml) to Azure SQL Database:
+[`database.tests`](../database.tests) on every PR and push; its `deploy` job publishes to
+Azure SQL Database:
 
 | Trigger | Deploys to | Data-loss guard |
 |---|---|---|

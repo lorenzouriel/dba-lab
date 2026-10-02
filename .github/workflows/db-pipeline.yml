@@ -48,33 +48,62 @@ jobs:
           path: database/bin/Release/database.dacpac
           if-no-files-found: error
 
-  deploy-dev:
-    if: github.event_name == 'push' && github.ref == 'refs/heads/dev'
+  # One deploy job; the GitHub Environment (and therefore its secrets and approval rules) is chosen
+  # from the ref. It is a plain job, not a reusable-workflow call, so Environment secrets resolve normally.
+  deploy:
+    if: >-
+      github.event_name == 'push' &&
+      (github.ref == 'refs/heads/dev' || github.ref == 'refs/heads/main' || startsWith(github.ref, 'refs/tags/v'))
     needs: [tests, build]
+    runs-on: ubuntu-latest
     permissions:
       contents: read
-      id-token: write   # a called workflow can't exceed the caller's permissions; OIDC needs this here too
-    uses: ./.github/workflows/db-deploy.yml
-    with:
-      environment: dev
-      block-data-loss: false
+      id-token: write   # OIDC token for azure/login
+    environment: ${{ startsWith(github.ref, 'refs/tags/v') && 'prod' || (github.ref == 'refs/heads/main' && 'qa' || 'dev') }}
+    # One deploy per environment at a time; never cancel one that is mid-publish.
+    concurrency:
+      group: db-deploy-${{ startsWith(github.ref, 'refs/tags/v') && 'prod' || (github.ref == 'refs/heads/main' && 'qa' || 'dev') }}
+      cancel-in-progress: false
+    env:
+      TARGET_ENV: ${{ startsWith(github.ref, 'refs/tags/v') && 'prod' || (github.ref == 'refs/heads/main' && 'qa' || 'dev') }}
+      # dev may drop data freely; qa and prod fail the publish if the change could lose data.
+      BLOCK_DATA_LOSS: ${{ github.ref == 'refs/heads/dev' && 'false' || 'true' }}
+    steps:
+      - uses: actions/download-artifact@v4
+        with:
+          name: database-dacpac
+          path: dacpac
 
-  deploy-qa:
-    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
-    needs: [tests, build]
-    permissions:
-      contents: read
-      id-token: write
-    uses: ./.github/workflows/db-deploy.yml
-    with:
-      environment: qa
+      # The repo is public, so Actions logs are too. These identifiers are stored as Environment
+      # secrets so GitHub masks them in logs (variables are printed in clear in step headers).
+      - name: Check required Environment secrets
+        env:
+          AZURE_CLIENT_ID: ${{ secrets.AZURE_CLIENT_ID }}
+          AZURE_TENANT_ID: ${{ secrets.AZURE_TENANT_ID }}
+          AZURE_SUBSCRIPTION_ID: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
+          SQL_SERVER: ${{ secrets.SQL_SERVER }}
+          SQL_DATABASE: ${{ secrets.SQL_DATABASE }}
+        run: |
+          missing=0
+          for name in AZURE_CLIENT_ID AZURE_TENANT_ID AZURE_SUBSCRIPTION_ID SQL_SERVER SQL_DATABASE; do
+            if [ -z "${!name}" ]; then
+              echo "::error::Secret $name is empty or missing. Add it as an Environment secret (not a variable) on the '$TARGET_ENV' Environment."
+              missing=1
+            fi
+          done
+          exit $missing
 
-  deploy-prod:
-    if: github.event_name == 'push' && startsWith(github.ref, 'refs/tags/v')
-    needs: [tests, build]
-    permissions:
-      contents: read
-      id-token: write
-    uses: ./.github/workflows/db-deploy.yml
-    with:
-      environment: prod
+      - name: Azure login (OIDC)
+        uses: azure/login@v2
+        with:
+          client-id: ${{ secrets.AZURE_CLIENT_ID }}
+          tenant-id: ${{ secrets.AZURE_TENANT_ID }}
+          subscription-id: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
+
+      - name: Publish dacpac to ${{ env.TARGET_ENV }}
+        uses: azure/sql-action@v2.3
+        with:
+          connection-string: Server=${{ secrets.SQL_SERVER }};Initial Catalog=${{ secrets.SQL_DATABASE }};Authentication=Active Directory Default;Encrypt=True
+          path: dacpac/database.dacpac
+          action: publish
+          arguments: /p:BlockOnPossibleDataLoss=${{ env.BLOCK_DATA_LOSS }} /p:DropObjectsNotInSource=false
