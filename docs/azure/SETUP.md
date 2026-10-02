@@ -162,16 +162,19 @@ This lets any Azure-hosted service reach the server, which is acceptable for a l
 
 ### 3.6 App registration and federated credential
 
-The federated credential tells Entra: "trust tokens GitHub issues for this repo and this Environment." The `subject` must match exactly, including case.
+The federated credential tells Entra: "trust tokens GitHub issues for this repo and this Environment." The `subject` must match exactly, including case. GitHub now puts numeric IDs in the subject (`repo:<owner>@<owner id>/<repo>@<repo id>:environment:<env>`); the `azure/login` log prints the `subject claim` it sent, so check it if in doubt. Repositories that still use the older form send `repo:<owner>/<repo>:environment:<env>`.
 
 ```bash
+OWNER_ID=$(gh api users/lorenzouriel --jq .id)           # 92133074
+REPO_ID=$(gh api repos/$REPO --jq .id)                    # 1274611502
+
 APP_ID=$(az ad app create --display-name $APP --query appId -o tsv)
 az ad sp create --id $APP_ID
 
 az ad app federated-credential create --id $APP_ID --parameters '{
   "name": "github-'$ENV'",
   "issuer": "https://token.actions.githubusercontent.com",
-  "subject": "repo:'$REPO':environment:'$ENV'",
+  "subject": "repo:lorenzouriel@'$OWNER_ID'/lab-dba@'$REPO_ID':environment:'$ENV'",
   "audiences": ["api://AzureADTokenExchange"]
 }'
 ```
@@ -307,7 +310,7 @@ A checklist for each environment before its first deploy:
 
 - [ ] Server and database exist; server is Entra-only.
 - [ ] Firewall allows the runner.
-- [ ] Federated credential subject is `repo:lorenzouriel/lab-dba:environment:<env>`.
+- [ ] Federated credential subject is `repo:lorenzouriel@92133074/lab-dba@1274611502:environment:<env>`.
 - [ ] Service principal has Reader on the resource group.
 - [ ] Contained user exists in `fin_pulse` with `db_owner`.
 - [ ] All five secrets are set on the Environment.
@@ -335,7 +338,7 @@ Rollback: Publish is forward-only. To undo a change, merge a revert and let the 
 
 | Symptom | Cause | Fix |
 |---|---|---|
-| `AADSTS70021: No matching federated identity record found` | Subject mismatch | The credential subject must be exactly `repo:lorenzouriel/lab-dba:environment:<env>`. Check the Environment name's case and that the job uses `environment:`. |
+| `AADSTS70021: No matching federated identity record found` | Subject mismatch | The credential subject must be exactly what the `azure/login` log prints as `subject claim` (for this repo `repo:lorenzouriel@92133074/lab-dba@1274611502:environment:<env>`). Check the Environment name's case and that the job uses `environment:`. |
 | `No subscriptions found` in `azure/login` | Service principal has no role | Do 3.7. |
 | `Login failed for user '<token-identified principal>'` | Database user missing | Do 3.8 in the `fin_pulse` database, not `master`. |
 | `Cannot open server ... Client with IP address ... is not allowed` | Firewall | Do 3.5. |

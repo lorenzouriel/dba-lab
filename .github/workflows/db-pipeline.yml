@@ -117,6 +117,12 @@ jobs:
         if: steps.wake.outcome == 'failure'
         run: sleep 90
 
+      # azure/sql-action shells out to `sqlpackage`, which the ubuntu runner image no longer ships.
+      - name: Install SqlPackage
+        run: |
+          dotnet tool install --global microsoft.sqlpackage
+          echo "$HOME/.dotnet/tools" >> "$GITHUB_PATH"
+
       - name: Publish dacpac to ${{ env.TARGET_ENV }}
         uses: azure/sql-action@v2.3
         with:

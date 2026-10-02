@@ -81,13 +81,13 @@ You can change the firewall later under **SQL server → Security → Networking
    - GitHub environment name: `dev`
    - Name: `github-dev`
    - Audience: leave `api://AzureADTokenExchange`
-5. **Fix the subject identifier.** The newer form generates an ID-based subject, `repo:lorenzouriel@92133074/lab-dba@1274611502:environment:dev`. GitHub's default token carries the name-based subject, so the ID form would not match. Click **Edit (optional)** next to **Subject identifier** and set it to:
+5. **Leave the generated subject identifier as it is.** The form builds an ID-based subject:
 
    ```text
-   repo:lorenzouriel/lab-dba:environment:dev
+   repo:lorenzouriel@92133074/lab-dba@1274611502:environment:dev
    ```
 
-   It is case-sensitive and must match the GitHub Environment name exactly. If the form won't let you edit it, use the **Other issuer** scenario instead: issuer `https://token.actions.githubusercontent.com`, type **Explicit subject identifier**, the value above, audience `api://AzureADTokenExchange`.
+   This is what GitHub puts in the token for this repo (confirmed in the `azure/login` log, `subject claim - ...`). Do not rewrite it to the older name-based form `repo:lorenzouriel/lab-dba:environment:dev`: that one would not match. The subject is case-sensitive and must match the GitHub Environment name exactly. Repositories created before GitHub switched to ID-based subjects still send the name-based form; the `azure/login` log tells you which one you have.
 6. Click **Add**.
 
 Use one app per environment, and make sure each credential is added to **its own app** (`gh-labdba-prod` for prod). The `prod` credential then only works for jobs that run in the `prod` Environment, which is where your approval gate lives.
@@ -213,7 +213,7 @@ Each Environment gets its own client ID and server name. Because `SQL_DATABASE` 
 
 - [ ] Server and database exist, and the server is Entra-only.
 - [ ] **Allow Azure services** is on.
-- [ ] Federated credential subject is `repo:lorenzouriel/lab-dba:environment:<env>`, on that environment's own app.
+- [ ] Federated credential subject is `repo:lorenzouriel@92133074/lab-dba@1274611502:environment:<env>`, on that environment's own app.
 - [ ] The app has Reader on the resource group.
 - [ ] The database user exists in `fin_pulse` with `db_owner`.
 - [ ] All five secrets are set on the GitHub Environment.
@@ -222,7 +222,7 @@ Each Environment gets its own client ID and server name. Because `SQL_DATABASE` 
 
 | Symptom | Cause | Fix |
 |---|---|---|
-| `AADSTS70021` or `AADSTS700213: No matching federated identity record found` | Subject mismatch | The login error prints the subject GitHub sent. Copy that exact string into the credential. Check case, the ID-based vs name-based form (step 4.5), and that the job uses `environment:`. |
+| `AADSTS70021` or `AADSTS700213: No matching federated identity record found` | Subject mismatch | The login error prints the subject GitHub sent. Copy the `subject claim` from the `azure/login` log into the credential exactly. Check case, the ID-based vs name-based form (step 4.5), and that the job uses `environment:`. |
 | `No subscriptions found` in the login step | No role on the service principal | Redo step 5 (Reader role). |
 | `Login failed for user '<token-identified principal>'` | Database user missing | Redo step 6 inside `fin_pulse`, not `master`. |
 | `Msg 33159` creating the user | Session isn't an Entra connection | See the error 33159 notes in step 6. |
