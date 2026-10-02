@@ -2,20 +2,19 @@ name: Database CI/CD
 
 # PR            -> build + tests
 # push to dev   -> build + tests -> deploy dev
-# push to main  -> build + tests -> deploy qa
-# tag v*        -> build + tests -> deploy prod (GitHub Environment approval)
+# push to qa    -> build + tests -> deploy qa
+# push to main  -> build + tests -> deploy prod (GitHub Environment approval)
 
 on:
   pull_request:
-    branches: [dev, main]
+    branches: [dev, qa, main]
     paths:
       - "database/**"
       - "database.tests/**"
       - ".github/workflows/db-*.yml"
       - ".github/workflows/database-tests.yml"
   push:
-    branches: [dev, main]
-    tags: ["v*"]
+    branches: [dev, qa, main]
     paths:
       - "database/**"
       - "database.tests/**"
@@ -33,16 +32,16 @@ jobs:
   build:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
 
-      - uses: actions/setup-dotnet@v4
+      - uses: actions/setup-dotnet@67a3573c9a986a3f9c594539f4ab511d57bb3ce9 # v4
         with:
           dotnet-version: 10.0.x
 
       - name: Build dacpac
         run: dotnet build database/database.sqlproj -c Release --nologo
 
-      - uses: actions/upload-artifact@v4
+      - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
         with:
           name: database-dacpac
           path: database/bin/Release/database.dacpac
@@ -53,48 +52,29 @@ jobs:
   deploy:
     if: >-
       github.event_name == 'push' &&
-      (github.ref == 'refs/heads/dev' || github.ref == 'refs/heads/main' || startsWith(github.ref, 'refs/tags/v'))
+      contains(fromJSON('["refs/heads/dev","refs/heads/qa","refs/heads/main"]'), github.ref)
     needs: [tests, build]
     runs-on: ubuntu-latest
     permissions:
       contents: read
       id-token: write   # OIDC token for azure/login
-    environment: ${{ startsWith(github.ref, 'refs/tags/v') && 'prod' || (github.ref == 'refs/heads/main' && 'qa' || 'dev') }}
+    environment: ${{ github.ref_name == 'main' && 'prod' || github.ref_name }}
     # One deploy per environment at a time; never cancel one that is mid-publish.
     concurrency:
-      group: db-deploy-${{ startsWith(github.ref, 'refs/tags/v') && 'prod' || (github.ref == 'refs/heads/main' && 'qa' || 'dev') }}
+      group: db-deploy-${{ github.ref_name == 'main' && 'prod' || github.ref_name }}
       cancel-in-progress: false
     env:
-      TARGET_ENV: ${{ startsWith(github.ref, 'refs/tags/v') && 'prod' || (github.ref == 'refs/heads/main' && 'qa' || 'dev') }}
+      TARGET_ENV: ${{ github.ref_name == 'main' && 'prod' || github.ref_name }}
       # dev may drop data freely; qa and prod fail the publish if the change could lose data.
       BLOCK_DATA_LOSS: ${{ github.ref == 'refs/heads/dev' && 'false' || 'true' }}
     steps:
-      - uses: actions/download-artifact@v4
+      - uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093 # v4
         with:
           name: database-dacpac
           path: dacpac
 
-      # The repo is public, so Actions logs are too. These identifiers are stored as Environment
-      # secrets so GitHub masks them in logs (variables are printed in clear in step headers).
-      - name: Check required Environment secrets
-        env:
-          AZURE_CLIENT_ID: ${{ secrets.AZURE_CLIENT_ID }}
-          AZURE_TENANT_ID: ${{ secrets.AZURE_TENANT_ID }}
-          AZURE_SUBSCRIPTION_ID: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
-          SQL_SERVER: ${{ secrets.SQL_SERVER }}
-          SQL_DATABASE: ${{ secrets.SQL_DATABASE }}
-        run: |
-          missing=0
-          for name in AZURE_CLIENT_ID AZURE_TENANT_ID AZURE_SUBSCRIPTION_ID SQL_SERVER SQL_DATABASE; do
-            if [ -z "${!name}" ]; then
-              echo "::error::Secret $name is empty or missing. Add it as an Environment secret (not a variable) on the '$TARGET_ENV' Environment."
-              missing=1
-            fi
-          done
-          exit $missing
-
       - name: Azure login (OIDC)
-        uses: azure/login@v2
+        uses: azure/login@7184910d9eb2b1c5e48f7073824a90609bb9b6d6 # v2
         with:
           client-id: ${{ secrets.AZURE_CLIENT_ID }}
           tenant-id: ${{ secrets.AZURE_TENANT_ID }}
@@ -108,7 +88,7 @@ jobs:
       - name: Wake database
         id: wake
         continue-on-error: true
-        uses: azure/sql-action@v2.3
+        uses: azure/sql-action@dae62750f3e645283b7755717b44a2029c0735fb # v2.3
         with:
           connection-string: Server=${{ secrets.SQL_SERVER }};Initial Catalog=${{ secrets.SQL_DATABASE }};Authentication=Active Directory Default;Encrypt=True
           path: wake.sql
@@ -124,7 +104,7 @@ jobs:
           echo "$HOME/.dotnet/tools" >> "$GITHUB_PATH"
 
       - name: Publish dacpac to ${{ env.TARGET_ENV }}
-        uses: azure/sql-action@v2.3
+        uses: azure/sql-action@dae62750f3e645283b7755717b44a2029c0735fb # v2.3
         with:
           connection-string: Server=${{ secrets.SQL_SERVER }};Initial Catalog=${{ secrets.SQL_DATABASE }};Authentication=Active Directory Default;Encrypt=True
           path: dacpac/database.dacpac

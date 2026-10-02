@@ -38,6 +38,7 @@ GO
 :r /database/Security/ae.cmk.sql
 :r /database/Security/ae.cek.sql
 
+:r /database/Storage/ps_monthly_date.sql
 :r /database/Tables/users.sql
 :r /database/Tables/plan.budgets.sql
 :r /database/Tables/plan.goals.sql

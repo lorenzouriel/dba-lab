@@ -19,6 +19,7 @@
     <Build Include="Security\roles.sql" />
     <Build Include="Security\ae.cmk.sql" />
     <Build Include="Security\ae.cek.sql" />
+    <Build Include="Storage\ps_monthly_date.sql" />
     <Build Include="Tables\users.sql" />
     <Build Include="Tables\plan.budgets.sql" />
     <Build Include="Tables\plan.goals.sql" />

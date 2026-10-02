@@ -11,6 +11,7 @@ buildable from Visual Studio or the `msbuild`/`dotnet build` CLI into a
 database/
 ├── database.sln
 ├── database.sqlproj
+├── Storage/           # partition function + scheme
 ├── Tables/
 ├── Views/
 ├── StoredProcedures/
@@ -54,6 +55,11 @@ split across schemas by domain:
 
 `reporting` is also created (via `Security\reporting.sql`) but currently holds
 no objects — reserved for future aggregation views.
+
+`body.habit_logs` is partitioned monthly on `log_date` (`Storage\ps_monthly_date.sql`) as a
+pilot. Its PK is `(id, log_date)` because the partition column must be in every aligned unique
+key; `id` stays unique in practice through `IDENTITY`. Partition boundaries are static (2024-01 to
+2027-12): `SPLIT RANGE` ahead of time to add months.
 
 All FKs are real constraints (not just indexed columns) for referential
 integrity, and `user_id` FKs on the `body`/`mind` tables cascade on delete.
