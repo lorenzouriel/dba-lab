@@ -1,0 +1,2 @@
+CREATE SCHEMA [plan] AUTHORIZATION [dbo];
+GO

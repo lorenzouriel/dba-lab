@@ -1,0 +1,7 @@
+.env
+backups/*
+!backups/.gitkeep
+!restore/.gitkeep
+
+# Always Encrypted lab column master key (private key)
+always-encrypted/*.pfx

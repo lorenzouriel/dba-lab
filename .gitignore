@@ -1,5 +1,3 @@
-.env
-
 # MSBuild / Visual Studio
 *.suo
 *.user
@@ -14,8 +12,43 @@
 *.dll
 *.pdb
 
+# Build Folders
+[Bb]in/
+[Oo]bj/
+TestResults/
+
+# User-specific files
+*.suo
+*.user
+*.userprefs
+*.sln.docstates
+
+# SQL Server / SSDT specific
+*.mdf
+*.ldf
+*.ndf
+*.dbmdl
+*.jfm
+*.dbproj.schemaview
+
+# Business Intelligence / SSIS
+*.ispac
+*.rdl.data
+*.bim.layout
+*.bim_*.settings
+
+# Environment and Secrets
+.env
+*.pubxml
+*.publishsettings   
+
 # Deploy output (generated diff scripts)
 **/scripts/deploy/output/
 
-dba-lab/dp800/notes/.obsidian/*
-dp800/notes/.obsidian/workspace.json
+# Python (infra/data_gen)
+__pycache__/
+*.pyc
+
+# Claude
+.claude/
+xiuu.md
