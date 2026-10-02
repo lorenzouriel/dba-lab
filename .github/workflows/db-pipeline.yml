@@ -51,6 +51,9 @@ jobs:
   deploy-dev:
     if: github.event_name == 'push' && github.ref == 'refs/heads/dev'
     needs: [tests, build]
+    permissions:
+      contents: read
+      id-token: write   # a called workflow can't exceed the caller's permissions; OIDC needs this here too
     uses: ./.github/workflows/db-deploy.yml
     with:
       environment: dev
@@ -59,6 +62,9 @@ jobs:
   deploy-qa:
     if: github.event_name == 'push' && github.ref == 'refs/heads/main'
     needs: [tests, build]
+    permissions:
+      contents: read
+      id-token: write
     uses: ./.github/workflows/db-deploy.yml
     with:
       environment: qa
@@ -66,6 +72,9 @@ jobs:
   deploy-prod:
     if: github.event_name == 'push' && startsWith(github.ref, 'refs/tags/v')
     needs: [tests, build]
+    permissions:
+      contents: read
+      id-token: write
     uses: ./.github/workflows/db-deploy.yml
     with:
       environment: prod

@@ -91,9 +91,9 @@ SqlPackage /Action:Publish `
 | push to `main` | `qa` | on |
 | tag `v*` | `prod` | on (add required reviewers on the `prod` Environment) |
 
-Auth is GitHub OIDC to an Entra app registration (no stored secrets). Each GitHub
-Environment (`dev`, `qa`, `prod`) needs these **variables**: `AZURE_CLIENT_ID`,
-`AZURE_TENANT_ID`, `AZURE_SUBSCRIPTION_ID`, `SQL_SERVER` (e.g.
+Auth is GitHub OIDC to an Entra app registration (no client secret). Each GitHub
+Environment (`dev`, `qa`, `prod`) needs these **secrets** (masked in the public logs):
+`AZURE_CLIENT_ID`, `AZURE_TENANT_ID`, `AZURE_SUBSCRIPTION_ID`, `SQL_SERVER` (e.g.
 `sql-labdba-dev.database.windows.net`) and `SQL_DATABASE`. The app registration needs a
 federated credential for that Environment and a contained user in the target database
 (`CREATE USER [<app name>] FROM EXTERNAL PROVIDER; ALTER ROLE db_owner ADD MEMBER [<app name>];`),

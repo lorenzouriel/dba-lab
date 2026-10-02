@@ -2,6 +2,8 @@
 
 How the database pipeline works, and everything that has to exist in Azure and GitHub before it can deploy.
 
+This page uses the Azure CLI and `gh`. For the same steps as portal and GitHub UI clicks, see [SETUP-UI.md](SETUP-UI.md).
+
 - [1. How the pipeline works](#1-how-the-pipeline-works)
 - [2. What you need to create](#2-what-you-need-to-create)
 - [3. Azure setup](#3-azure-setup)
@@ -55,7 +57,7 @@ Details that matter:
   | prod | `true` | `false` |
 
   With `DropObjectsNotInSource=false`, an object removed from source is left in the database instead of dropped. Turn it on later once you trust the pipeline.
-- **Authentication.** There are no stored secrets. GitHub issues a short-lived OIDC token per job, Entra exchanges it for an access token (because of a federated credential you create), and that token logs in to SQL (because of a database user you create).
+- **Authentication.** There is no client secret or password. GitHub issues a short-lived OIDC token per job, Entra exchanges it for an access token (because of a federated credential you create), and that token logs in to SQL (because of a database user you create).
 - **Path filters.** PRs and branch pushes only run when `database/**`, `database.tests/**` or the `db-*.yml` workflows change. Tag pushes ignore path filters, so a `v*` tag always runs.
 - **Concurrency.** Deploys to the same environment queue instead of overlapping, and are never cancelled mid-publish.
 
@@ -81,11 +83,11 @@ Details that matter:
 | # | Item |
 |---|---|
 | 1 | Three Environments: `dev`, `qa`, `prod` |
-| 2 | Five variables on each Environment (see [4.2](#42-environment-variables)) |
+| 2 | Five secrets on each Environment (see [4.2](#42-environment-secrets)) |
 | 3 | Required reviewers on `prod` |
 | 4 | Branch protection on `main` and `dev` requiring the test and build checks |
 
-No GitHub secrets are needed. The IDs below are identifiers, not credentials, so they are stored as variables.
+The IDs below are identifiers, not credentials. This repo is public and GitHub prints variables in clear text in public Actions logs, so all five are stored as Environment **secrets** (masked as `***`).
 
 ---
 
@@ -245,11 +247,11 @@ For `prod`, also consider limiting deployments to tags matching `v*` (Environmen
 
 A repo owner approving their own deployment is allowed by default. For a team, set "Prevent self-review".
 
-### 4.2 Environment variables
+### 4.2 Environment secrets
 
-Set these five **variables** (Settings → Environments → *env* → Environment variables) on each Environment, using the values from 3.9 for that environment:
+Set these on each Environment (Settings → Environments → *env* → Environment secrets), using the values from 3.9 for that environment:
 
-| Variable | Example |
+| Name | Type | Example |
 |---|---|
 | `AZURE_CLIENT_ID` | `11111111-2222-3333-4444-555555555555` |
 | `AZURE_TENANT_ID` | `aaaaaaaa-bbbb-cccc-dddd-eeeeeeeeeeee` |
@@ -258,14 +260,14 @@ Set these five **variables** (Settings → Environments → *env* → Environmen
 | `SQL_DATABASE` | `fin_pulse` |
 
 ```bash
-gh variable set AZURE_CLIENT_ID       --env dev --body "$APP_ID"
-gh variable set AZURE_TENANT_ID       --env dev --body "$TENANT_ID"
-gh variable set AZURE_SUBSCRIPTION_ID --env dev --body "$SUBSCRIPTION_ID"
-gh variable set SQL_SERVER            --env dev --body "$SERVER.database.windows.net"
-gh variable set SQL_DATABASE          --env dev --body "$DB"
+gh secret set   AZURE_CLIENT_ID       --env dev --body "$APP_ID"
+gh secret set   AZURE_TENANT_ID       --env dev --body "$TENANT_ID"
+gh secret set   AZURE_SUBSCRIPTION_ID --env dev --body "$SUBSCRIPTION_ID"
+gh secret set   SQL_SERVER            --env dev --body "$SERVER.database.windows.net"
+gh secret set   SQL_DATABASE          --env dev --body "$DB"
 ```
 
-They are variables rather than secrets on purpose: none of them lets anyone log in on its own. The trust lives in the federated credential (3.6).
+None of them lets anyone log in on its own; the trust lives in the federated credential (3.6). They are secrets only so the public logs don't expose your tenant, subscription, server and database name. Masking `fin_pulse` also blanks that word wherever it appears in the deploy job's logs.
 
 ### 4.3 Branch protection
 
@@ -309,7 +311,7 @@ A checklist for each environment before its first deploy:
 - [ ] Federated credential subject is `repo:lorenzouriel/lab-dba:environment:<env>`.
 - [ ] Service principal has Reader on the resource group.
 - [ ] Contained user exists in `fin_pulse` with `db_owner`.
-- [ ] All five variables are set on the Environment.
+- [ ] All five secrets are set on the Environment.
 
 ---
 

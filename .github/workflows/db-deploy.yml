@@ -31,17 +31,19 @@ jobs:
           name: database-dacpac
           path: dacpac
 
+      # The repo is public, so Actions logs are too. These identifiers are stored as Environment
+      # secrets so GitHub masks them in logs (variables are printed in clear in step headers).
       - name: Azure login (OIDC)
         uses: azure/login@v2
         with:
-          client-id: ${{ vars.AZURE_CLIENT_ID }}
-          tenant-id: ${{ vars.AZURE_TENANT_ID }}
-          subscription-id: ${{ vars.AZURE_SUBSCRIPTION_ID }}
+          client-id: ${{ secrets.AZURE_CLIENT_ID }}
+          tenant-id: ${{ secrets.AZURE_TENANT_ID }}
+          subscription-id: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
 
       - name: Publish dacpac to ${{ inputs.environment }}
         uses: azure/sql-action@v2.3
         with:
-          connection-string: Server=${{ vars.SQL_SERVER }};Initial Catalog=${{ vars.SQL_DATABASE }};Authentication=Active Directory Default;Encrypt=True
+          connection-string: Server=${{ secrets.SQL_SERVER }};Initial Catalog=${{ secrets.SQL_DATABASE }};Authentication=Active Directory Default;Encrypt=True
           path: dacpac/database.dacpac
           action: publish
           arguments: /p:BlockOnPossibleDataLoss=${{ inputs.block-data-loss }} /p:DropObjectsNotInSource=false
