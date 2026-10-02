@@ -33,6 +33,23 @@ jobs:
 
       # The repo is public, so Actions logs are too. These identifiers are stored as Environment
       # secrets so GitHub masks them in logs (variables are printed in clear in step headers).
+      - name: Check required Environment secrets
+        env:
+          AZURE_CLIENT_ID: ${{ secrets.AZURE_CLIENT_ID }}
+          AZURE_TENANT_ID: ${{ secrets.AZURE_TENANT_ID }}
+          AZURE_SUBSCRIPTION_ID: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
+          SQL_SERVER: ${{ secrets.SQL_SERVER }}
+          SQL_DATABASE: ${{ secrets.SQL_DATABASE }}
+        run: |
+          missing=0
+          for name in AZURE_CLIENT_ID AZURE_TENANT_ID AZURE_SUBSCRIPTION_ID SQL_SERVER SQL_DATABASE; do
+            if [ -z "${!name}" ]; then
+              echo "::error::Secret $name is empty or missing. Add it as an Environment secret (not a variable) on the '${{ inputs.environment }}' Environment."
+              missing=1
+            fi
+          done
+          exit $missing
+
       - name: Azure login (OIDC)
         uses: azure/login@v2
         with:
