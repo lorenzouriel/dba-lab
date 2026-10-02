@@ -109,4 +109,4 @@ jobs:
           connection-string: Server=${{ secrets.SQL_SERVER }};Initial Catalog=${{ secrets.SQL_DATABASE }};Authentication=Active Directory Default;Encrypt=True
           path: dacpac/database.dacpac
           action: publish
-          arguments: /p:BlockOnPossibleDataLoss=${{ env.BLOCK_DATA_LOSS }} /p:DropObjectsNotInSource=false
+          arguments: /p:BlockOnPossibleDataLoss=${{ env.BLOCK_DATA_LOSS }} /p:DropObjectsNotInSource=false /p:AllowUnsafeRowLevelSecurityDataMovement=true

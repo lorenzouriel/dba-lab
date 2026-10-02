@@ -344,6 +344,7 @@ Rollback: Publish is forward-only. To undo a change, merge a revert and let the 
 | `Cannot open server ... Client with IP address ... is not allowed` | Firewall | Do 3.5. |
 | Connection times out on the first deploy of the day | Serverless database is resuming | Re-run the job; it succeeds once the database is awake. |
 | `Rows were detected. The schema update is terminating because data loss might occur` | `BlockOnPossibleDataLoss` caught a destructive change | Intended. Split the change (add new column, copy, drop later) or handle it in a post-deployment script. |
+| `SQL71616: SR0111 ... data motion on table ... row level security enabled by policy` | A change (e.g. partitioning, column reorder) makes SqlPackage rebuild a table that an RLS policy protects | The pipeline passes `/p:AllowUnsafeRowLevelSecurityDataMovement=true`. The deploy identity must bypass the policy, otherwise rows it can't see are not copied. |
 | `Build error SQL70001: This statement is not recognized in this context` | A `.sql` file has a statement SSDT does not accept (e.g. `SET QUOTED_IDENTIFIER`, `USE`) | Remove it from the file; project settings cover it. |
 | Table in the repo but not in the dacpac | File not listed in `database.sqlproj` | Add the `<Build Include>`. |
 | `Duplicate 'Build' items were included` | `EnableDefaultSqlItems` removed | Keep it `false`; items are listed by hand on purpose. |
