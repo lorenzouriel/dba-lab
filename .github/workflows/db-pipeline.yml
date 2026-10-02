@@ -100,6 +100,23 @@ jobs:
           tenant-id: ${{ secrets.AZURE_TENANT_ID }}
           subscription-id: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
 
+      # Serverless databases auto-pause; the first connection fails while the database resumes
+      # ("Database ... is not currently available"). Poke it, wait if that failed, then publish.
+      - name: Prepare wake-up query
+        run: echo "SELECT 1;" > wake.sql
+
+      - name: Wake database
+        id: wake
+        continue-on-error: true
+        uses: azure/sql-action@v2.3
+        with:
+          connection-string: Server=${{ secrets.SQL_SERVER }};Initial Catalog=${{ secrets.SQL_DATABASE }};Authentication=Active Directory Default;Encrypt=True
+          path: wake.sql
+
+      - name: Wait for the database to resume
+        if: steps.wake.outcome == 'failure'
+        run: sleep 90
+
       - name: Publish dacpac to ${{ env.TARGET_ENV }}
         uses: azure/sql-action@v2.3
         with:
