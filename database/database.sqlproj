@@ -1,0 +1,49 @@
+<Project DefaultTargets="Build">
+  <Sdk Name="Microsoft.Build.Sql" Version="2.3.0" />
+  <PropertyGroup>
+    <Name>database</Name>
+    <ProjectGuid>{7c0508d2-aca7-42f1-aef3-372556471af3}</ProjectGuid>
+    <DSP>Microsoft.Data.Tools.Schema.Sql.SqlAzureV12DatabaseSchemaProvider</DSP>
+    <ModelCollation>1033, CI</ModelCollation>
+    <TargetDatabase>fin_pulse</TargetDatabase>
+    <!-- Explicit, ordered Build items: database.tests reads this list to deploy the schema. -->
+    <EnableDefaultSqlItems>false</EnableDefaultSqlItems>
+  </PropertyGroup>
+  <ItemGroup>
+    <Build Include="Security\finance.sql" />
+    <Build Include="Security\plan.sql" />
+    <Build Include="Security\reporting.sql" />
+    <Build Include="Security\body.sql" />
+    <Build Include="Security\mind.sql" />
+    <Build Include="Security\sec.sql" />
+    <Build Include="Security\roles.sql" />
+    <Build Include="Security\ae.cmk.sql" />
+    <Build Include="Security\ae.cek.sql" />
+    <Build Include="Storage\ps_monthly_date.sql" />
+    <Build Include="Tables\users.sql" />
+    <Build Include="Tables\plan.budgets.sql" />
+    <Build Include="Tables\plan.goals.sql" />
+    <Build Include="Tables\finance.earnings.sql" />
+    <Build Include="Tables\finance.expenses.sql" />
+    <Build Include="Tables\finance.investments.sql" />
+    <Build Include="Tables\finance.bills.sql" />
+    <Build Include="Tables\body.weekly_routines.sql" />
+    <Build Include="Tables\body.workouts.sql" />
+    <Build Include="Tables\body.personal_records.sql" />
+    <Build Include="Tables\body.meals.sql" />
+    <Build Include="Tables\body.water_intake.sql" />
+    <Build Include="Tables\body.body_metrics.sql" />
+    <Build Include="Tables\body.sleep_logs.sql" />
+    <Build Include="Tables\body.habits.sql" />
+    <Build Include="Tables\body.habit_logs.sql" />
+    <Build Include="Tables\body.substance_logs.sql" />
+    <Build Include="Tables\body.symptom_logs.sql" />
+    <Build Include="Tables\mind.meditation_sessions.sql" />
+    <Build Include="Tables\mind.journal_entries.sql" />
+    <Build Include="Functions\sec.fn_user_access_predicate.sql" />
+    <Build Include="Security\sec.user_isolation_policy.sql" />
+  </ItemGroup>
+  <ItemGroup>
+    <PostDeploy Include="PostDeployment\Script.PostDeployment.sql" />
+  </ItemGroup>
+</Project>

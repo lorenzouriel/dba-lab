@@ -1,0 +1,392 @@
+name: sqlserver-lab
+
+services:
+  # -------------------------------------------------------------- prod1
+  # AG primary. Always up (default profile).
+  prod1:
+    image: mcr.microsoft.com/mssql/server:2025-latest
+    hostname: prod1
+    restart: unless-stopped
+    environment:
+      ACCEPT_EULA: "Y"
+      MSSQL_PID: Developer
+      MSSQL_SA_PASSWORD: ${MSSQL_SA_PASSWORD:?set MSSQL_SA_PASSWORD in .env}
+      MSSQL_AGENT_ENABLED: "true"
+      MSSQL_MEMORY_LIMIT_MB: ${PROD1_MEMORY_LIMIT_MB:-6144}
+      MSSQL_COLLATION: ${MSSQL_COLLATION:-SQL_Latin1_General_CP1_CI_AS}
+      MSSQL_ENABLE_HADR: "1"
+      TZ: ${TZ:-America/Sao_Paulo}
+    ports:
+      - "${PROD1_PORT:-1401}:1433"
+    volumes:
+      - prod1-data:/var/opt/mssql          # data, log, secrets, errorlog
+      - ./restore:/var/opt/mssql/restore:ro   # drop .bak here to import
+      - ./backups:/var/opt/mssql/backups      # BACKUP DATABASE writes here
+      - ./scripts:/scripts:ro
+      - ../database:/database:ro              # SSDT source (Security/, Tables/, ...), deploy via sqlcmd
+      - ag-certs:/var/opt/mssql/ag-certs      # HADR endpoint cert exchange (ha profile)
+    mem_limit: ${PROD1_MEM_LIMIT:-8g}
+    healthcheck:
+      test:
+        - CMD-SHELL
+        - /opt/mssql-tools18/bin/sqlcmd -S localhost -U sa -P "$$MSSQL_SA_PASSWORD" -C -b -Q "SELECT 1" || exit 1
+      interval: 10s
+      timeout: 5s
+      retries: 10
+      start_period: 90s
+
+  # --------------------------------------------------------- bootstrap-prod1
+  # One-shot. Enables the instance-level switches DP-800 needs, on prod1.
+  bootstrap-prod1:
+    image: mcr.microsoft.com/mssql/server:2025-latest
+    depends_on:
+      prod1:
+        condition: service_healthy
+    environment:
+      MSSQL_SA_PASSWORD: ${MSSQL_SA_PASSWORD}
+    volumes:
+      - ./scripts:/scripts:ro
+    entrypoint:
+      - /opt/mssql-tools18/bin/sqlcmd
+      - -S
+      - prod1
+      - -U
+      - sa
+      - -P
+      - ${MSSQL_SA_PASSWORD}
+      - -C
+      - -b
+      - -i
+      - /scripts/00-bootstrap.sql
+    restart: "no"
+
+  # ----------------------------------------------------------- seed (opt)
+  # `docker compose --profile seed up seed` — rebuild a lab DB from a .bak.
+  # Targets prod1 by default; override with $env:SEED_TARGET.
+  seed:
+    profiles: ["seed"]
+    image: mcr.microsoft.com/mssql/server:2025-latest
+    depends_on:
+      prod1:
+        condition: service_healthy
+    volumes:
+      - ./scripts:/scripts:ro
+    entrypoint:
+      - /opt/mssql-tools18/bin/sqlcmd
+      - -S
+      - ${SEED_TARGET:-prod1}
+      - -U
+      - sa
+      - -P
+      - ${MSSQL_SA_PASSWORD}
+      - -C
+      - -b
+      - -v
+      - DBNAME=${SEED_DB:-billing}
+      - -v
+      - BAKFILE=${SEED_BAK:-billing.bak}
+      - -i
+      - /scripts/01-restore.sql
+    restart: "no"
+
+  # -------------------------------------------------------------- prod2
+  # AG secondary, synchronous-commit, read-only. `docker compose --profile ha up -d`.
+  prod2:
+    profiles: ["ha"]
+    image: mcr.microsoft.com/mssql/server:2025-latest
+    hostname: prod2
+    restart: unless-stopped
+    environment:
+      ACCEPT_EULA: "Y"
+      MSSQL_PID: Developer
+      MSSQL_SA_PASSWORD: ${MSSQL_SA_PASSWORD}
+      MSSQL_AGENT_ENABLED: "true"
+      MSSQL_MEMORY_LIMIT_MB: ${PROD2_MEMORY_LIMIT_MB:-4096}
+      MSSQL_COLLATION: ${MSSQL_COLLATION:-SQL_Latin1_General_CP1_CI_AS}
+      MSSQL_ENABLE_HADR: "1"
+      TZ: ${TZ:-America/Sao_Paulo}
+    ports:
+      - "${PROD2_PORT:-1402}:1433"
+    volumes:
+      - prod2-data:/var/opt/mssql
+      - ./backups:/var/opt/mssql/backups
+      - ag-certs:/var/opt/mssql/ag-certs
+    mem_limit: ${PROD2_MEM_LIMIT:-6g}
+    healthcheck:
+      test:
+        - CMD-SHELL
+        - /opt/mssql-tools18/bin/sqlcmd -S localhost -U sa -P "$$MSSQL_SA_PASSWORD" -C -b -Q "SELECT 1" || exit 1
+      interval: 10s
+      timeout: 5s
+      retries: 10
+      start_period: 90s
+
+  # -------------------------------------------------------------- prod3
+  # AG secondary, asynchronous-commit, read-scale-only — not a synchronous HA
+  # partner like prod2, just extra read capacity (see Use case 2b). Joined to
+  # the AG separately via `ag-add-prod3` since it's added after the fact.
+  # `docker compose --profile ha up -d prod3`.
+  prod3:
+    profiles: ["ha"]
+    image: mcr.microsoft.com/mssql/server:2025-latest
+    hostname: prod3
+    restart: unless-stopped
+    environment:
+      ACCEPT_EULA: "Y"
+      MSSQL_PID: Developer
+      MSSQL_SA_PASSWORD: ${MSSQL_SA_PASSWORD}
+      MSSQL_AGENT_ENABLED: "true"
+      MSSQL_MEMORY_LIMIT_MB: ${PROD3_MEMORY_LIMIT_MB:-4096}
+      MSSQL_COLLATION: ${MSSQL_COLLATION:-SQL_Latin1_General_CP1_CI_AS}
+      MSSQL_ENABLE_HADR: "1"
+      TZ: ${TZ:-America/Sao_Paulo}
+    ports:
+      - "${PROD3_PORT:-1405}:1433"
+    volumes:
+      - prod3-data:/var/opt/mssql
+      - ./backups:/var/opt/mssql/backups
+      - ag-certs:/var/opt/mssql/ag-certs
+    mem_limit: ${PROD3_MEM_LIMIT:-6g}
+    healthcheck:
+      test:
+        - CMD-SHELL
+        - /opt/mssql-tools18/bin/sqlcmd -S localhost -U sa -P "$$MSSQL_SA_PASSWORD" -C -b -Q "SELECT 1" || exit 1
+      interval: 10s
+      timeout: 5s
+      retries: 10
+      start_period: 90s
+
+  # ---------------------------------------------------- ag-certs-init (opt)
+  # ag-certs is a fresh named volume owned by root; prod1/prod2 run as uid
+  # 10001 and can't write cert backups into it without this one-shot chown.
+  ag-certs-init:
+    profiles: ["ha"]
+    image: busybox
+    volumes:
+      - ag-certs:/data
+    command: ["sh", "-c", "chown -R 10001:0 /data"]
+    restart: "no"
+
+  # --------------------------------------------------------- ag-setup (opt)
+  # `docker compose --profile ha run --rm ag-setup` — cert-based HADR
+  # endpoints on prod1+prod2, an availability group (CLUSTER_TYPE=NONE, no
+  # WSFC/Pacemaker across two plain containers), and read-only routing so
+  # prod2 serves ApplicationIntent=ReadOnly connections.
+  ag-setup:
+    profiles: ["ha"]
+    image: mcr.microsoft.com/mssql/server:2025-latest
+    depends_on:
+      prod1:
+        condition: service_healthy
+      prod2:
+        condition: service_healthy
+      ag-certs-init:
+        condition: service_completed_successfully
+    volumes:
+      - ./scripts:/scripts:ro
+    entrypoint:
+      - /opt/mssql-tools18/bin/sqlcmd
+      - -S
+      - prod1
+      - -U
+      - sa
+      - -P
+      - ${MSSQL_SA_PASSWORD}
+      - -C
+      - -b
+      - -v
+      - SAPW=${MSSQL_SA_PASSWORD}
+      - -v
+      - DBNAME=${AGDB:-agdb}
+      - -i
+      - /scripts/20-ag-setup.sql
+    restart: "no"
+
+  # ----------------------------------------------------- ag-add-prod3 (opt)
+  # `docker compose --profile ha run --rm ag-add-prod3` — run once, after
+  # `ag-setup` has already created ag1 on prod1+prod2. Adds prod3 as a third,
+  # asynchronous-commit, read-only replica and folds it into read-only
+  # routing alongside prod2.
+  ag-add-prod3:
+    profiles: ["ha"]
+    image: mcr.microsoft.com/mssql/server:2025-latest
+    depends_on:
+      prod1:
+        condition: service_healthy
+      prod2:
+        condition: service_healthy
+      prod3:
+        condition: service_healthy
+    volumes:
+      - ./scripts:/scripts:ro
+    entrypoint:
+      - /opt/mssql-tools18/bin/sqlcmd
+      - -S
+      - prod1
+      - -U
+      - sa
+      - -P
+      - ${MSSQL_SA_PASSWORD}
+      - -C
+      - -b
+      - -v
+      - SAPW=${MSSQL_SA_PASSWORD}
+      - -i
+      - /scripts/21-ag-add-prod3.sql
+    restart: "no"
+
+  # ---------------------------------------------------------------- dev
+  # Standalone instance, no AG. `docker compose --profile dev up -d`.
+  dev:
+    profiles: ["dev"]
+    image: mcr.microsoft.com/mssql/server:2025-latest
+    hostname: dev
+    restart: unless-stopped
+    environment:
+      ACCEPT_EULA: "Y"
+      MSSQL_PID: Developer
+      MSSQL_SA_PASSWORD: ${MSSQL_SA_PASSWORD}
+      MSSQL_AGENT_ENABLED: "true"
+      MSSQL_MEMORY_LIMIT_MB: ${DEV_MEMORY_LIMIT_MB:-4096}
+      MSSQL_COLLATION: ${MSSQL_COLLATION:-SQL_Latin1_General_CP1_CI_AS}
+      TZ: ${TZ:-America/Sao_Paulo}
+    ports:
+      - "${DEV_PORT:-1403}:1433"
+    volumes:
+      - dev-data:/var/opt/mssql
+      - ./restore:/var/opt/mssql/restore:ro
+      - ./backups:/var/opt/mssql/backups
+      - ./scripts:/scripts:ro
+    mem_limit: ${DEV_MEM_LIMIT:-6g}
+    healthcheck:
+      test:
+        - CMD-SHELL
+        - /opt/mssql-tools18/bin/sqlcmd -S localhost -U sa -P "$$MSSQL_SA_PASSWORD" -C -b -Q "SELECT 1" || exit 1
+      interval: 10s
+      timeout: 5s
+      retries: 10
+      start_period: 90s
+
+  # ---------------------------------------------------------- bootstrap-dev
+  bootstrap-dev:
+    profiles: ["dev"]
+    image: mcr.microsoft.com/mssql/server:2025-latest
+    depends_on:
+      dev:
+        condition: service_healthy
+    environment:
+      MSSQL_SA_PASSWORD: ${MSSQL_SA_PASSWORD}
+    volumes:
+      - ./scripts:/scripts:ro
+    entrypoint:
+      - /opt/mssql-tools18/bin/sqlcmd
+      - -S
+      - dev
+      - -U
+      - sa
+      - -P
+      - ${MSSQL_SA_PASSWORD}
+      - -C
+      - -b
+      - -i
+      - /scripts/00-bootstrap.sql
+    restart: "no"
+
+  # ------------------------------------------------------------- staging
+  # Standalone instance, no AG. `docker compose --profile staging up -d`.
+  staging:
+    profiles: ["staging"]
+    image: mcr.microsoft.com/mssql/server:2025-latest
+    hostname: staging
+    restart: unless-stopped
+    environment:
+      ACCEPT_EULA: "Y"
+      MSSQL_PID: Developer
+      MSSQL_SA_PASSWORD: ${MSSQL_SA_PASSWORD}
+      MSSQL_AGENT_ENABLED: "true"
+      MSSQL_MEMORY_LIMIT_MB: ${STAGING_MEMORY_LIMIT_MB:-4096}
+      MSSQL_COLLATION: ${MSSQL_COLLATION:-SQL_Latin1_General_CP1_CI_AS}
+      TZ: ${TZ:-America/Sao_Paulo}
+    ports:
+      - "${STAGING_PORT:-1404}:1433"
+    volumes:
+      - staging-data:/var/opt/mssql
+      - ./restore:/var/opt/mssql/restore:ro
+      - ./backups:/var/opt/mssql/backups
+      - ./scripts:/scripts:ro
+    mem_limit: ${STAGING_MEM_LIMIT:-6g}
+    healthcheck:
+      test:
+        - CMD-SHELL
+        - /opt/mssql-tools18/bin/sqlcmd -S localhost -U sa -P "$$MSSQL_SA_PASSWORD" -C -b -Q "SELECT 1" || exit 1
+      interval: 10s
+      timeout: 5s
+      retries: 10
+      start_period: 90s
+
+  # ------------------------------------------------------ bootstrap-staging
+  bootstrap-staging:
+    profiles: ["staging"]
+    image: mcr.microsoft.com/mssql/server:2025-latest
+    depends_on:
+      staging:
+        condition: service_healthy
+    environment:
+      MSSQL_SA_PASSWORD: ${MSSQL_SA_PASSWORD}
+    volumes:
+      - ./scripts:/scripts:ro
+    entrypoint:
+      - /opt/mssql-tools18/bin/sqlcmd
+      - -S
+      - staging
+      - -U
+      - sa
+      - -P
+      - ${MSSQL_SA_PASSWORD}
+      - -C
+      - -b
+      - -i
+      - /scripts/00-bootstrap.sql
+    restart: "no"
+
+  # --------------------------------------------------------------- datagen
+  # fin_pulse test data generator: 50 heavily-active users / 365 days by
+  # default (see data_gen/README.md). One-shot commands via `run --rm`.
+  # `docker compose --profile datagen run --rm datagen backfill --target dev`
+  # `docker compose --profile datagen run --rm datagen backfill --target dev --users 100 --days 365 --reset`
+  datagen:
+    profiles: ["datagen"]
+    build: ./data_gen
+    environment:
+      MSSQL_SA_PASSWORD: ${MSSQL_SA_PASSWORD}
+      TZ: ${TZ:-America/Sao_Paulo}
+    volumes:
+      - ./data_gen/datagen:/app/datagen:ro   # bind-mounted for edit-and-rerun without a rebuild
+    command: ["backfill", "--target", "dev"]
+
+  # ---------------------------------------------------------- datagen-stream
+  # Continuous background load, unlike the one-shot `datagen` service above —
+  # `up -d` it and it keeps ticking (and restarts if it crashes) until you
+  # `stop`/`down` it. Needs `dbo.users` already populated (run `backfill`
+  # first). Defaults to prod1 since that's the AG primary in Use case 2.
+  # `docker compose --profile datagen up -d datagen-stream`
+  # `docker compose --profile datagen logs -f datagen-stream`
+  # `docker compose --profile datagen stop datagen-stream`
+  datagen-stream:
+    profiles: ["datagen"]
+    build: ./data_gen
+    restart: unless-stopped
+    environment:
+      MSSQL_SA_PASSWORD: ${MSSQL_SA_PASSWORD}
+      TZ: ${TZ:-America/Sao_Paulo}
+    volumes:
+      - ./data_gen/datagen:/app/datagen:ro
+    command: ["stream", "--target", "prod1", "--interval", "3"]
+
+volumes:
+  prod1-data:
+  prod2-data:
+  prod3-data:
+  dev-data:
+  staging-data:
+  ag-certs:
