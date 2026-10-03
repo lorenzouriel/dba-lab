@@ -130,7 +130,7 @@ already deployed:
 ```powershell
 docker compose up -d prod1
 docker compose exec prod1 /opt/mssql-tools18/bin/sqlcmd `
-  -S localhost -U sa -P "$env:MSSQL_SA_PASSWORD" -C -b -i /scripts/02-deploy-fin-pulse.sql
+  -S localhost -U sa -P "$env:MSSQL_SA_PASSWORD" -C -b -I -i /scripts/02-deploy-fin-pulse.sql
 
 $env:AGDB = "fin_pulse"
 docker compose --profile ha up -d prod2

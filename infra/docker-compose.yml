@@ -257,6 +257,7 @@ services:
       - ./restore:/var/opt/mssql/restore:ro
       - ./backups:/var/opt/mssql/backups
       - ./scripts:/scripts:ro
+      - ../database:/database:ro              # SSDT source, for 02-deploy-fin-pulse.sql
     mem_limit: ${DEV_MEM_LIMIT:-6g}
     healthcheck:
       test:
@@ -314,6 +315,7 @@ services:
       - ./restore:/var/opt/mssql/restore:ro
       - ./backups:/var/opt/mssql/backups
       - ./scripts:/scripts:ro
+      - ../database:/database:ro              # SSDT source, for 02-deploy-fin-pulse.sql
     mem_limit: ${STAGING_MEM_LIMIT:-6g}
     healthcheck:
       test:

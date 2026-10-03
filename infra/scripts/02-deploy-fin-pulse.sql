@@ -5,11 +5,11 @@
     database.sqlproj's <Build Include> order exactly; keep both in sync
     when a table is added or removed.
 
-    Requires /database mounted read-only (currently only prod1, see
-    docker-compose.yml). Run once prod1 reports healthy:
+    Requires /database mounted read-only (prod1, dev, staging; see
+    docker-compose.yml) and sqlcmd -I (QUOTED_IDENTIFIER ON). Run once healthy:
 
         docker compose exec prod1 /opt/mssql-tools18/bin/sqlcmd `
-          -S localhost -U sa -P "$env:MSSQL_SA_PASSWORD" -C -b -i /scripts/02-deploy-fin-pulse.sql
+          -S localhost -U sa -P "$env:MSSQL_SA_PASSWORD" -C -b -I -i /scripts/02-deploy-fin-pulse.sql
 
     Idempotent-ish: CREATE DATABASE is skipped if fin_pulse already exists,
     but re-running against an already-deployed database will fail on the
